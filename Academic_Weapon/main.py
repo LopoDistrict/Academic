@@ -11,7 +11,7 @@ class Task(ft.Column):
         self.task_status_change = task_status_change
         self.task_delete = task_delete
         self.display_task = ft.Checkbox(
-            value=False, label=f"{self.task_name} - Date : {self.task_date}", on_change=self.status_changed
+            value=False, label=f"{self.task_name} • {self.task_date}", on_change=self.status_changed
         )
         self.edit_name = ft.TextField(expand=1)
         self.edit_date = ft.TextField(expand=1, value=self.task_date, label="Modifier la tâche (YYYY-MM-DD)")
@@ -93,7 +93,7 @@ class TodoApp(ft.Column):
         super().__init__()
 
         self.new_task = ft.TextField(
-            label="Nom de tâche", on_submit=self.add_clicked, expand=True,border=ft.InputBorder.UNDERLINE,
+            label="Nom de tâche", on_submit=self.add_clicked, expand=True,border=ft.InputBorder.UNDERLINE,max_length=25
         )
 
         self.selected_date = None
@@ -213,6 +213,8 @@ class TodoApp(ft.Column):
 
 def main(page: ft.Page):
     page.title = "chose_a_faire"
+    page.theme_mode = "dark"    # dark mode
+    page.adaptive = True
     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
     page.scroll = ft.ScrollMode.ADAPTIVE
 

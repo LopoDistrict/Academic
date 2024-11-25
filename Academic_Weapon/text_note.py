@@ -12,25 +12,17 @@ class Pomodoro(ft.UserControl):
             multiline=True,
             min_lines=1,
             max_lines=200,
-            border="#fff"
+            border="#fff",
+            border_color=ft.colors.TRANSPARENT,
+            expand=True,
+            label="Ecrivez vos notes ici",
+            value=" "
             )
     
     def save(self):
         with open("document/new_doc1.txt", "w") as file:
             file.write(self.t.value)
-            file.close()
-
-    def save_interface(self):
-        return ft.Container(
-            ft.Text(value="Enregistrement de la note"),
-            ft.TextField(
-                max_lines=1,
-                label="Nom de votre note",
-            ),
-            ft.FilledButton(text="Enregistrer",icon=ft.icons.SAVE_ALT, on_click=lambda _: self.save(),
-                            adaptive=True, 
-                            style=ft.ButtonStyle(bgcolor="#939cfc",),),
-        )
+            file.close()    
         
 
     def build(self):
@@ -38,7 +30,7 @@ class Pomodoro(ft.UserControl):
             [
                 ft.Row(
                     [
-                        ft.FilledButton(text="Enreg.",icon=ft.icons.SAVE_ALT, on_click=lambda _: self.save_interface(),
+                        ft.FilledButton(text="Enreg.",icon=ft.icons.SAVE_ALT, on_click=lambda _: self.save(),
                             adaptive=True, 
                             style=ft.ButtonStyle(bgcolor="#939cfc",),),                        
                     ],
@@ -66,6 +58,8 @@ def main(page: ft.Page):
     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
     page.scroll = ft.ScrollMode.ADAPTIVE
     page.bgcolor = "#00021d"
+    page.theme_mode = "dark"    # dark mode
+    page.adaptive = True
     # Navigation bar
 
     page.navigation_bar = ft.NavigationBar(
