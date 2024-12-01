@@ -1,6 +1,4 @@
 import flet as ft
-
-
 from typing import Union
 import flet as ft
 from tool_fold.Router import Router, DataStrategyEnum

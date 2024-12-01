@@ -86,7 +86,7 @@ def markdown_editor(router):
         icon=ft.icons.SAVE_ALT,
         on_click=lambda e: e.page.open(dlg_modal),
         adaptive=True,
-        width=125,
+        width=145,
         height=30,
         
         style=ft.ButtonStyle(bgcolor="#3B556D", color="#FFFFFF"),

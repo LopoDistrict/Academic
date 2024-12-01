@@ -1,16 +1,16 @@
 import flet as ft
 from tool_fold.routes import router
 
-
-
 def main(page: ft.Page):
+    page.update()
     page.theme_mode = "dark"
     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
     page.scroll = ft.ScrollMode.ADAPTIVE
     page.bgcolor = "#00021d"
-    page.theme_mode = "dark"    # dark mode
+    page.theme_mode = "dark"
     page.adaptive = True
    
+    page.update()
 
     def handle_nav_change(e):
         if e.control.selected_index == 0:
@@ -31,11 +31,15 @@ def main(page: ft.Page):
             ft.NavigationBarDestination(label="Librairie", icon=ft.icons.BOOKMARK),
         ],
     )
+    page.update()
     page.on_route_change = router.route_change
     router.page = page
+    page.update()
     page.add(
-        router.body
+        router.body,
     )
+    page.update()
     page.go('/')
+    page.update()
 
 ft.app(target=main, assets_dir="assets")

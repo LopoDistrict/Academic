@@ -143,9 +143,20 @@ def pomodoro(router):
                 self.update()
                 self.run_timer()
             else:
+                self.write_time(str(self.timer_duration - (self.time_remaining/60)))
                 self.running = False
                 self.start_button.text = "Continuer"
                 self.update()
+        
+        def write_time(self, value):
+            with open("assets/user_data/user_log.txt", 'r') as file:
+                lines = file.readlines()
+        
+            lines[0 - 1] = value + '\n'
+
+            with open("assets/user_data/user_log.txt", 'w') as file:
+                file.writelines(lines)
+                
 
         def run_timer(self):
             def countdown():
@@ -167,6 +178,7 @@ def pomodoro(router):
 
         def reset_timer(self, e):
             self.running = False
+            self.write_time(str(self.timer_duration - (self.time_remaining/60)))
             self.time_remaining = self.timer_duration * 60
             self.time_left.value = f"{self.timer_duration:02}:00"
             self.start_button.text = "Débuter"
