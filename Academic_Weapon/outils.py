@@ -4,6 +4,7 @@ import flet as ft
 from tool_fold.Router import Router, DataStrategyEnum
 from State import global_state, State
 import time
+import os.path, time
 
 def send_data(e, target_page):
     time.sleep(0.1)
@@ -33,6 +34,19 @@ def outils(router_data: Union[Router, str, None] = None):
                                 bgcolor="#3B556D", 
                                 overlay_color="#5FC2BA", 
 
+                            ),
+                        ),
+                        ft.FilledButton(
+                            icon=ft.icons.CHECKLIST,
+                            text="Liste à faire",
+                            width=60,
+                            height=80,                            
+                            on_click=lambda e: send_data(e, "/todo"),
+                            style=ft.ButtonStyle(
+                                shape=ft.RoundedRectangleBorder(radius=10),
+                                color="#FFFFFF",
+                                bgcolor="#3B556D",  
+                                overlay_color="#5FC2BA",
                             ),
                         ),
                         ft.ElevatedButton(
@@ -104,19 +118,7 @@ def outils(router_data: Union[Router, str, None] = None):
                                 overlay_color="#5FC2BA",  
                             ),
                         ),
-                        ft.FilledButton(
-                            icon=ft.icons.CHECKLIST,
-                            text="Liste à faire",
-                            width=60,
-                            height=80,                            
-                            on_click=lambda e: send_data(e, "/todo"),
-                            style=ft.ButtonStyle(
-                                shape=ft.RoundedRectangleBorder(radius=10),
-                                color="#FFFFFF",
-                                bgcolor="#3B556D",  
-                                overlay_color="#5FC2BA",
-                            ),
-                        ),
+                        
                         
                     ],
                     run_spacing={"xs": 10},

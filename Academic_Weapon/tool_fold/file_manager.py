@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+import os.path, time
 
 class FileSystem:
     def __init__(self):
@@ -38,8 +39,20 @@ class FileSystem:
 
 
     def read_given_line(self, filename, line):
+        file_path = self.get_file_path(filename)
         with open(filename, "r") as file:
             return file.readlines()[line]
+
+    def get_last_modified(self){
+        path = self.get_file_path("assets/user_data")
+        inf_temps = 
+        for dossier_racine, sous_dossiers, fichiers in os.walk(dossier_chemin):
+            for fichier in fichiers:
+                fichier_chemin_complet = os.path.join(dossier_racine, fichier)
+        
+        
+                time.ctime(os.path.getmtime())
+    }
 
     def append_file(self, value, line, path):    
         file_path = self.get_file_path(path)        
