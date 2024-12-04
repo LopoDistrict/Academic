@@ -1,6 +1,8 @@
 import flet as ft
 import threading
 import time
+from . import file_manager
+import math
 
 def pomodoro(router):
     class Pomodoro(ft.UserControl):
@@ -17,7 +19,8 @@ def pomodoro(router):
                 style=ft.ButtonStyle(
                     shape=ft.RoundedRectangleBorder(radius=10),
                     bgcolor="#3B556D",
-                    color="#FFFFFF"
+                    color="#FFFFFF",
+                    overlay_color="#456d92", 
                 ),
             )
 
@@ -30,7 +33,8 @@ def pomodoro(router):
                 style=ft.ButtonStyle(
                     shape=ft.RoundedRectangleBorder(radius=10),
                     bgcolor="#3B556D",
-                    color="#FFFFFF"
+                    color="#FFFFFF",
+                    overlay_color="#456d92", 
                 ),
             )
 
@@ -42,6 +46,10 @@ def pomodoro(router):
             # Build the layout
             return ft.Column(
                 [
+                    ft.Column(
+                        [],
+                        spacing=55,
+                    ),
                     ft.Row(
                         [
                             ft.Container(
@@ -58,7 +66,7 @@ def pomodoro(router):
                                             adaptive=True,
                                             width=125,
                                             height=45,
-                                            style=ft.ButtonStyle(bgcolor="#939cfc"),
+                                            style=ft.ButtonStyle(bgcolor="#939cfc", overlay_color="#adb4ff"),
                                         ),
                                         ft.FilledButton(
                                             text="50 min.",
@@ -66,7 +74,7 @@ def pomodoro(router):
                                             adaptive=True,
                                             width=125,
                                             height=45,
-                                            style=ft.ButtonStyle(bgcolor="#939cfc"),
+                                            style=ft.ButtonStyle(bgcolor="#939cfc", overlay_color="#adb4ff"),
                                         ),
                                     ],
                                     alignment=ft.MainAxisAlignment.CENTER,
@@ -92,7 +100,7 @@ def pomodoro(router):
                                             adaptive=True,
                                             width=125,
                                             height=45,
-                                            style=ft.ButtonStyle(bgcolor="#939cfc"),
+                                            style=ft.ButtonStyle(bgcolor="#939cfc", overlay_color="#adb4ff"),
                                         ),
                                         ft.FilledButton(
                                             text="15 min.",
@@ -100,7 +108,7 @@ def pomodoro(router):
                                             adaptive=True,
                                             width=125,
                                             height=45,
-                                            style=ft.ButtonStyle(bgcolor="#939cfc"),
+                                            style=ft.ButtonStyle(bgcolor="#939cfc", overlay_color="#adb4ff"),
                                         ),
                                     ],
                                     alignment=ft.MainAxisAlignment.CENTER,
@@ -130,7 +138,7 @@ def pomodoro(router):
         def set_timer(self, minutes):
             self.start_button.text = "Débuter"
             if self.running:
-                self.running = False  # Stop the current timer if running
+                self.running = False  
             self.timer_duration = minutes
             self.time_remaining = self.timer_duration * 60
             self.time_left.value = f"{minutes:02}:00"
@@ -143,19 +151,17 @@ def pomodoro(router):
                 self.update()
                 self.run_timer()
             else:
-                self.write_time(str(self.timer_duration - (self.time_remaining/60)))
+                temps_tavail = (self.timer_duration * 60) - (int(self.time_left.value[3:5]) + (int(self.time_left.value[0:2])*60))
+                self.write_time(str(temps_tavail))
                 self.running = False
                 self.start_button.text = "Continuer"
                 self.update()
         
-        def write_time(self, value):
-            with open("assets/user_data/user_log.txt", 'r') as file:
-                lines = file.readlines()
-        
-            lines[0 - 1] = value + '\n'
-
-            with open("assets/user_data/user_log.txt", 'w') as file:
-                file.writelines(lines)
+        def write_time(self, value):   
+            fs = file_manager.FileSystem()
+            file_path = "./assets/user_data/user_log.txt"  
+            anc_val = int(fs.read_given_line("assets/user_data/user_log.txt", 0))       
+            fs.append_file(value + anc_val, 0, file_path)
                 
 
         def run_timer(self):
@@ -178,7 +184,8 @@ def pomodoro(router):
 
         def reset_timer(self, e):
             self.running = False
-            self.write_time(str(self.timer_duration - (self.time_remaining/60)))
+            temps_tavail = (self.timer_duration * 60) - (int(self.time_left.value[3:5]) + (int(self.time_left.value[0:2])*60))
+            self.write_time(str(temps_tavail))
             self.time_remaining = self.timer_duration * 60
             self.time_left.value = f"{self.timer_duration:02}:00"
             self.start_button.text = "Débuter"

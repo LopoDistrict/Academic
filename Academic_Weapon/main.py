@@ -6,17 +6,27 @@ def main(page: ft.Page):
     page.theme_mode = "dark"
     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
     page.scroll = ft.ScrollMode.ADAPTIVE
-    page.bgcolor = "#00021d"
+    page.bgcolor = "#151515"
     page.theme_mode = "dark"
     page.adaptive = True
-   
     page.update()
 
     def handle_nav_change(e):
-        if e.control.selected_index == 0:
+        if e.control.selected_index == 1:
             page.title = "Outils"
+            page.go('/outil')
+
+        if e.control.selected_index == 0:
+            page.title = "Accueil"
             page.go('/')
 
+        if e.control.selected_index == 2:
+            page.title = "Communaute"
+            page.go('/communaute') 
+
+        if e.control.selected_index == 3:
+            page.title = "Librairie"
+            page.go('/librairie') 
 
         page.update()
 
@@ -26,9 +36,10 @@ def main(page: ft.Page):
         bgcolor="#0B162C",
         on_change=handle_nav_change,
         destinations=[
-            ft.NavigationBarDestination(label="Outils", icon=ft.icons.EXPLORE),
+            ft.NavigationBarDestination(label="Accueil", icon=ft.icons.HOME),
+            ft.NavigationBarDestination(label="Outils", icon=ft.icons.EXPLORE),            
             ft.NavigationBarDestination(label="Communauté", icon=ft.icons.GROUP),
-            ft.NavigationBarDestination(label="Librairie", icon=ft.icons.BOOKMARK),
+            ft.NavigationBarDestination(label="Librairie", icon=ft.icons.BOOKMARK),            
         ],
     )
     page.update()

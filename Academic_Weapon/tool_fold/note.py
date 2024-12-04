@@ -42,6 +42,10 @@ def main(page: ft.Page):
     )
 
     page.add(
+         ft.Column(
+                    [],
+                    spacing=35,
+                ),
         ft.Container(
             cp,
             border_radius=5,

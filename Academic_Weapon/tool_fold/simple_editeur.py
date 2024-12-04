@@ -1,6 +1,7 @@
 import flet as ft
 import time
 import datetime
+from . import file_manager
 
 def simple_editeur(router):
     class Simple_editeur(ft.UserControl):
@@ -18,16 +19,71 @@ def simple_editeur(router):
                 label="Ecrivez vos notes ici",
                 value=" "
                 )
+
+            self.nom_fic = ft.TextField(label="Nom du fichier")
+            self.dlg_modal = ft.AlertDialog(
+                modal=True,
+                title=ft.Text("Confirmation"),
+                content=ft.Text("Voulez vous sauvegardez votre travail?"),
+                actions=[
+                    ft.Column(
+                        [
+                            self.nom_fic,
+                        ft.Row(
+                            [
+                                ft.TextButton("Oui", on_click=self.save),
+                                ft.TextButton("Non", on_click=self.handle_close),
+                            ],                    
+                        ),
+                        ],
+                        spacing=25,
+                    ),
+                    
+
+                ],
+            )
         
- 
+
+        def save(self, e):
+            """
+            with open(f"document/{nom_fic.value}.txt", "w") as file:
+                file.write(text_field.value)
+                file.close()  """
+
+            fs = file_manager.FileSystem()
+            file_path = fs.write_to_file("./document/"+self.nom_fic.value+".txt", self.t.value)
+
+            e.page.snack_bar = ft.SnackBar(
+                ft.Text(f"Fichier sauvegardé: {self.nom_fic.value}")
+            )
+            e.page.snack_bar.open = True
+            e.page.update()
+            e.page.close(self.dlg_modal)
+
+        def handle_close(self, e):
+            e.page.close(self.dlg_modal)
+
+
         def build(self):
             return ft.Column(
                 [
+                    ft.Column(
+                    [],
+                    spacing=35,
+                ),
                     ft.Row(
                         [
-                            ft.FilledButton(text="Enreg.",icon=ft.icons.SAVE_ALT, on_click=lambda _: self.save(),
-                                adaptive=True, 
-                                style=ft.ButtonStyle(bgcolor="#3B556D", color="#FFFFFF"),),                        
+
+                                ft.FilledButton(
+                                    text="Enregistrer",
+                                    icon=ft.icons.SAVE_ALT,
+                                    on_click=lambda e: e.page.open(self.dlg_modal),
+                                    adaptive=True,
+                                    width=145,
+                                    height=30,
+                                    
+                                    style=ft.ButtonStyle(bgcolor="#3B556D", color="#FFFFFF"),
+                                )
                         ],
                         
                     ),
@@ -46,8 +102,4 @@ def simple_editeur(router):
                 ],            
             )
 
-        def save(self):
-            with open("document/new_doc1.txt", "w") as file:
-                file.write(self.t.value)
-                file.close()   
     return Simple_editeur()   

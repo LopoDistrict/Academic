@@ -118,8 +118,13 @@ def todo(router):
             self.width = 600
             self.controls = [
 
+
                 ft.Row(
                     controls=[
+                        ft.Column(
+                            [],
+                            spacing=55,
+                        ),
                         self.new_task,
                         ft.FloatingActionButton(
                             "Ajouter",
@@ -149,14 +154,18 @@ def todo(router):
             ]
 
         def show_date_picker(self, e):
+            x = datetime.datetime.now()
+
+
             date_picker = ft.DatePicker(
-                first_date=datetime.datetime(year=2023, month=10, day=1),
+                first_date=datetime.datetime(year=x.year, month=1, day=1),                
+                last_date=datetime.datetime(year=x.year+1, month=12, day=31),
                 on_change=self.date_changed,
                 on_dismiss=self.handle_dismissal,
             )
-            self.page.overlay.append(date_picker)  # Add the DatePicker to the overlay
-            date_picker.open = True  # Open the DatePicker
-            self.page.update()  # Update the page to reflect changes
+            self.page.overlay.append(date_picker)
+            date_picker.open = True  
+            self.page.update()  
 
 
         def date_changed(self, e):

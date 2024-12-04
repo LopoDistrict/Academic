@@ -1,4 +1,6 @@
 import flet as ft
+import sys 
+from . import file_manager
 
 def markdown_editor(router):
     def update_preview(e):
@@ -14,10 +16,20 @@ def markdown_editor(router):
         e.page.close(dlg_modal)
 
     def save(e):
+        """
         with open(f"document/{nom_fic.value}.txt", "w") as file:
             file.write(text_field.value)
-            file.close()  
-        e.page.close(dlg_modal)
+            file.close()  """
+
+        fs = file_manager.FileSystem()
+        file_path = fs.write_to_file("./document/"+nom_fic.value+".md", text_field.value)
+        
+        e.page.snack_bar = ft.SnackBar(
+            ft.Text(f"Fichier sauvegardé: {self.nom_fic.value}")
+        )
+        e.page.snack_bar.open = True
+        e.page.update()
+        e.page.close(self.dlg_modal)
         
 
 
@@ -57,8 +69,15 @@ def markdown_editor(router):
         - une                   ### gros gros titre
         - liste
     
-        - [x] liste             
-        - [ ]  barré """),
+        - [x] liste              ``` ecrire du code```
+        - [ ]  barré 
+        
+        ## Tables        
+        | colonne 1     | colonne 2  |
+        |---------------|-------------|
+        |ceci est un     | tableau      |
+    
+        """),
         actions=[
             ft.Row(
                 [

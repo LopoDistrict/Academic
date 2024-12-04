@@ -1,5 +1,6 @@
 from tool_fold.Router import Router, DataStrategyEnum
 from outils import outils
+from accueil import accueil
 from tool_fold.pomodoro import pomodoro
 from tool_fold.simple_editeur import simple_editeur
 from tool_fold.todo import todo
@@ -9,7 +10,8 @@ from tool_fold.markdown_editor import markdown_editor
 router = Router(DataStrategyEnum.QUERY)
 
 router.routes = {
-  "/": outils,
+  "/": accueil,
+  "/outil": outils,
   "/pomodoro": pomodoro,
   "/simple_editeur": simple_editeur,
   "/todo": todo,

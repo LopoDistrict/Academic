@@ -3,19 +3,24 @@ from typing import Union
 import flet as ft
 from tool_fold.Router import Router, DataStrategyEnum
 from State import global_state, State
+import time
 
 def send_data(e, target_page):
+    time.sleep(0.1)
+    e.scale = 2
     e.page.go(target_page)
+
+    
 
 
 def outils(router_data: Union[Router, str, None] = None):
-    content = ft.Container(
-        content=ft.Column(
+    content = ft.Container(      
+            ft.Column(            
             [
                 ft.Text("Avec quoi nous travaillons aujourd'hui?", size=20, weight=ft.FontWeight.BOLD,),
                 ft.ResponsiveRow(
                     controls=[
-                        ft.FilledButton(
+                        ft.ElevatedButton(
                             icon=ft.icons.ACCESS_TIME,
                             text="Pomodoro",
                             width=60,
@@ -25,10 +30,12 @@ def outils(router_data: Union[Router, str, None] = None):
                             style=ft.ButtonStyle(
                                 shape=ft.RoundedRectangleBorder(radius=10),
                                  color="#FFFFFF",
-                                bgcolor="#3B556D",  
+                                bgcolor="#3B556D", 
+                                overlay_color="#5FC2BA", 
+
                             ),
                         ),
-                        ft.FilledButton(
+                        ft.ElevatedButton(
                             icon=ft.icons.EDIT_NOTE,
                             text="Simple Éditeur de note",
                             width=60,
@@ -37,10 +44,12 @@ def outils(router_data: Union[Router, str, None] = None):
                             style=ft.ButtonStyle(
                                 shape=ft.RoundedRectangleBorder(radius=10),
                                  color="#FFFFFF",
-                                bgcolor="#3B556D",  
+                                bgcolor="#3B556D",
+                                overlay_color="#5FC2BA", 
+                                 
                             ),
                         ),
-                        ft.FilledButton(
+                        ft.ElevatedButton(
                             icon=ft.icons.EDIT,
                             text="Markdown note Editeur",
                             width=60,
@@ -48,21 +57,24 @@ def outils(router_data: Union[Router, str, None] = None):
                             on_click=lambda e: send_data(e, "/markdown_editor"),
                             style=ft.ButtonStyle(
                                 shape=ft.RoundedRectangleBorder(radius=10),
-                                  color="#FFFFFF",
+                                color="#FFFFFF",
                                 bgcolor="#3B556D",  
+                                overlay_color="#5FC2BA",
                             ),
                             
                         ),
-                        ft.FilledButton(
+                        ft.ElevatedButton(
                             icon=ft.icons.MULTITRACK_AUDIO_SHARP,
                             text="Note Audio",
                             width=60,
                             height=80,
                             on_click=send_data,
+                            elevation=100,                                                                
                             style=ft.ButtonStyle(
                                 shape=ft.RoundedRectangleBorder(radius=10),
                                 color="#FFFFFF",
                                 bgcolor="#3B556D",  
+                                overlay_color="#5FC2BA",
                             ),
                         ),
                         ft.FilledButton(
@@ -75,7 +87,8 @@ def outils(router_data: Union[Router, str, None] = None):
                             style=ft.ButtonStyle(
                                 shape=ft.RoundedRectangleBorder(radius=10),
                                 color="#FFFFFF",
-                                bgcolor="#3B556D",                                
+                                bgcolor="#3B556D", 
+                                overlay_color="#5FC2BA",                               
                             ),
                         ),
                         ft.FilledButton(
@@ -87,7 +100,8 @@ def outils(router_data: Union[Router, str, None] = None):
                             style=ft.ButtonStyle(
                                 shape=ft.RoundedRectangleBorder(radius=10),
                                  color="#FFFFFF",
-                                bgcolor="#3B556D",  
+                                bgcolor="#3B556D",
+                                overlay_color="#5FC2BA",  
                             ),
                         ),
                         ft.FilledButton(
@@ -100,6 +114,7 @@ def outils(router_data: Union[Router, str, None] = None):
                                 shape=ft.RoundedRectangleBorder(radius=10),
                                 color="#FFFFFF",
                                 bgcolor="#3B556D",  
+                                overlay_color="#5FC2BA",
                             ),
                         ),
                         
@@ -108,7 +123,7 @@ def outils(router_data: Union[Router, str, None] = None):
                     columns=1,
                 ),
             ],
-            spacing=25,
+            spacing=35,
             scroll=ft.ScrollMode.ALWAYS,
         ),
         height=1000,
