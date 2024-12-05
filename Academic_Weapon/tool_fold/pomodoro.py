@@ -161,7 +161,7 @@ def pomodoro(router):
             fs = file_manager.FileSystem()
             file_path = "./assets/user_data/user_log.txt"  
             anc_val = int(fs.read_given_line("assets/user_data/user_log.txt", 0))       
-            fs.append_file(value + anc_val, 0, file_path)
+            fs.append_file(str(value + anc_val), 0, file_path)
                 
 
         def run_timer(self):

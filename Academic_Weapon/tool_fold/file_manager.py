@@ -1,11 +1,26 @@
 import os
 from pathlib import Path
 import os.path, time
+import datetime
 
 class FileSystem:
     def __init__(self):
         # Use an external directory or fallback to the current directory
         self.base_path = self.get_external_storage_directory()
+        self.equivalent_mo = {
+            'Jan': 1,
+            'Feb': 2,
+            'Mar': 3,
+            'Apr': 4,
+            'May': 5,
+            'Jun': 6,
+            'Jul': 7,
+            'Aug': 8,
+            'Sep': 9, 
+            'Oct': 10,
+            'Nov': 11,
+            'Dec': 12
+    }
 
     def get_external_storage_directory(self) -> Path:
         """Get the external storage directory for Android or fallback to current directory."""
@@ -43,16 +58,27 @@ class FileSystem:
         with open(filename, "r") as file:
             return file.readlines()[line]
 
-    def get_last_modified(self){
-        path = self.get_file_path("assets/user_data")
-        inf_temps = 
-        for dossier_racine, sous_dossiers, fichiers in os.walk(dossier_chemin):
-            for fichier in fichiers:
-                fichier_chemin_complet = os.path.join(dossier_racine, fichier)
-        
-        
-                time.ctime(os.path.getmtime())
-    }
+    def get_last_modified(self):
+        doc_path = self.get_file_path("./document/")
+        latest_time = datetime.datetime.min  # Initialize to the earliest possible datetime
+        latest_path = ""
+
+        for root, dirs, files in os.walk(doc_path):
+            for file in files:
+                file_full_path = os.path.join(root, file)
+                file_mtime = datetime.datetime.fromtimestamp(os.path.getmtime(file_full_path))
+
+                # Debugging information
+                print(f"File: {file}, Modified Time: {file_mtime}")
+
+                if file_mtime > latest_time:
+                    latest_time = file_mtime
+                    latest_path = file_full_path
+
+        #print("Latest File Path:", latest_path)
+        #print("Latest File Name:", os.path.basename(latest_path))
+        return os.path.basename(latest_path)  
+
 
     def append_file(self, value, line, path):    
         file_path = self.get_file_path(path)        

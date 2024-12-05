@@ -10,7 +10,6 @@ from tool_fold import file_manager
 
 def send_data(e, target_page):
     time.sleep(0.1)
-    e.control.scale = 2
     e.page.go(target_page)
 
 
@@ -77,7 +76,19 @@ def accueil(router_data: Union[Router, str, None] = None):
                     content=ft.ResponsiveRow(
                         [
                             ft.Text("Dernier Document Travaillé ", size=17, weight=ft.FontWeight.BOLD), #a mettre le read d'un fichier
-                            
+                            ft.FilledButton(
+                                icon=ft.icons.INSERT_DRIVE_FILE,
+                                text=f"{fs.get_last_modified()}", 
+                                width=60,
+                                height=40,                            
+                                on_click=lambda e: send_data(e, "/librairie"),
+                                style=ft.ButtonStyle(
+                                    shape=ft.RoundedRectangleBorder(radius=10),
+                                    color="#FFFFFF",
+                                    bgcolor="#3B556D",  
+                                    overlay_color="#5FC2BA",
+                                ),
+                            ),
                         ],
                         
                         spacing=10,

@@ -21,7 +21,7 @@ def main(page: ft.Page):
             page.go('/')
 
         if e.control.selected_index == 2:
-            page.title = "Communaute"
+            page.title = "communaute"
             page.go('/communaute') 
 
         if e.control.selected_index == 3:

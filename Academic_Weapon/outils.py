@@ -8,7 +8,6 @@ import os.path, time
 
 def send_data(e, target_page):
     time.sleep(0.1)
-    e.scale = 2
     e.page.go(target_page)
 
     
