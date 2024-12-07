@@ -43,7 +43,7 @@ def accueil(router_data: Union[Router, str, None] = None):
                         
                     ),
                     height=60,
-                    bgcolor="#3870a4",
+                    bgcolor="#0080ff",
                     padding=ft.padding.only(left=10),
                 ),
                 ft.Divider(height=1, color="white"),
@@ -60,7 +60,7 @@ def accueil(router_data: Union[Router, str, None] = None):
                                 height=50,
                                 style=ft.ButtonStyle(                                    
                                     shape=ft.RoundedRectangleBorder(radius=20),
-                                    bgcolor="#3870a4",
+                                    
                                     overlay_color="#1d5384",
                                 ),
                             ),
@@ -86,7 +86,7 @@ def accueil(router_data: Union[Router, str, None] = None):
                                     shape=ft.RoundedRectangleBorder(radius=10),
                                     color="#FFFFFF",
                                     bgcolor="#3B556D",  
-                                    overlay_color="#5FC2BA",
+                                    overlay_color="#0b70d4",
                                 ),
                             ),
                         ],

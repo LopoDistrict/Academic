@@ -10,7 +10,7 @@ def pomodoro(router):
             super().__init__()
             self.time_left = ft.Text(value="25:00", size=40, color="white")
 
-            self.start_button = ft.FilledButton(
+            self.start_button = ft.OutlinedButton(
                 text="Débuter",
                 on_click=self.start_timer,
                 adaptive=True,
@@ -18,13 +18,13 @@ def pomodoro(router):
                 height=50,
                 style=ft.ButtonStyle(
                     shape=ft.RoundedRectangleBorder(radius=10),
-                    bgcolor="#3B556D",
+                    
                     color="#FFFFFF",
-                    overlay_color="#456d92", 
+                    overlay_color="#0b70d4", 
                 ),
             )
 
-            self.reset_button = ft.FilledButton(
+            self.reset_button = ft.OutlinedButton(
                 text="Reset",
                 on_click=self.reset_timer,
                 adaptive=True,
@@ -32,9 +32,8 @@ def pomodoro(router):
                 height=50,
                 style=ft.ButtonStyle(
                     shape=ft.RoundedRectangleBorder(radius=10),
-                    bgcolor="#3B556D",
                     color="#FFFFFF",
-                    overlay_color="#456d92", 
+                    overlay_color="#0b70d4", 
                 ),
             )
 
@@ -161,7 +160,7 @@ def pomodoro(router):
             fs = file_manager.FileSystem()
             file_path = "./assets/user_data/user_log.txt"  
             anc_val = int(fs.read_given_line("assets/user_data/user_log.txt", 0))       
-            fs.append_file(str(value + anc_val), 0, file_path)
+            fs.append_file(str(int(value) + int(anc_val)), 0, file_path)
                 
 
         def run_timer(self):

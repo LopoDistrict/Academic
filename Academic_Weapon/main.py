@@ -9,7 +9,9 @@ def main(page: ft.Page):
     page.bgcolor = "#151515"
     page.theme_mode = "dark"
     page.adaptive = True
+    #page.padding = ft.padding.only(top=55)
     page.update()
+
 
     def handle_nav_change(e):
         if e.control.selected_index == 1:
