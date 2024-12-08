@@ -13,6 +13,31 @@ def send_data(e, target_page):
     e.page.go(target_page)
 
 
+
+def is_nv_streak():
+    print("Executing this function")
+    fs = file_manager.FileSystem()
+    
+    last_connection_str = fs.read_given_line("assets/user_data/user_log.txt", 1).strip()
+    last_connection = datetime.datetime.strptime(last_connection_str, "%Y/%m/%d")
+
+    actual_date = datetime.datetime.now().date()
+
+    fs.append_file(actual_date.strftime("%Y/%m/%d"), 2, "assets/user_data/user_log.txt")
+    anc = int(fs.read_given_line("assets/user_data/user_log.txt", 2).strip())
+
+    days_diff = (actual_date - last_connection.date()).days
+
+
+    if days_diff >= 1:
+        new_streak = anc + 1
+        fs.append_file(str(new_streak), 3, "assets/user_data/user_log.txt")
+        
+        return new_streak
+    else:
+        return anc
+    
+
 def accueil(router_data: Union[Router, str, None] = None):
     # Determine greeting based on current hour
     x = datetime.datetime.now()
@@ -23,6 +48,24 @@ def accueil(router_data: Union[Router, str, None] = None):
         value_hour = "Bonsoir"
     else:
         value_hour = "Bon Après midi, "
+
+    val_temp = is_nv_streak()
+
+    streak_bottom = ft.BottomSheet(
+        #on_dismiss=handle_dismissal,
+        dismissible=True,
+        content=ft.Container(
+            padding=50,
+            content=ft.Column(
+                tight=True,
+                controls=[
+                    ft.Text("This is bottom sheet's content!"),
+                    ft.ElevatedButton("Close bottom sheet", on_click=lambda _: page.close(bs)),
+                ],
+            ),
+        ),
+    )
+    
 
     fs = file_manager.FileSystem()
 
@@ -35,8 +78,9 @@ def accueil(router_data: Union[Router, str, None] = None):
                     content=ft.Row(
                         [
                             ft.Text("Work Streak", size=25, weight=ft.FontWeight.BOLD),
-                            ft.Icon(name=ft.icons.LOCAL_FIRE_DEPARTMENT),
-                            ft.Text("5"),
+                            ft.Icon(name=ft.icons.LOCAL_FIRE_DEPARTMENT, color="#e50000", size=35),
+                            
+                            ft.Text(f"{val_temp}", size=19, weight=ft.FontWeight.BOLD),
                         ],
                         spacing=20,
                         vertical_alignment=ft.CrossAxisAlignment.CENTER,

@@ -9,7 +9,10 @@ def main(page: ft.Page):
     page.bgcolor = "#151515"
     page.theme_mode = "dark"
     page.adaptive = True
+    page.window.width = 375
     #page.padding = ft.padding.only(top=55)
+    page.scroll = ft.ScrollMode.HIDDEN
+    #page.auto_scroll = True
     page.update()
 
 

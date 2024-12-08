@@ -31,7 +31,7 @@ def outils(router_data: Union[Router, str, None] = None):
                                 shape=ft.RoundedRectangleBorder(radius=10),
                                  color="#FFFFFF",
                                 bgcolor="#3B556D", 
-                                overlay_color="#5FC2BA", 
+                                overlay_color="#0080ff", 
 
                             ),
                         ),
@@ -45,7 +45,7 @@ def outils(router_data: Union[Router, str, None] = None):
                                 shape=ft.RoundedRectangleBorder(radius=10),
                                 color="#FFFFFF",
                                 bgcolor="#3B556D",  
-                                overlay_color="#5FC2BA",
+                                overlay_color="#0080ff",
                             ),
                         ),
                         ft.ElevatedButton(
@@ -58,7 +58,7 @@ def outils(router_data: Union[Router, str, None] = None):
                                 shape=ft.RoundedRectangleBorder(radius=10),
                                  color="#FFFFFF",
                                 bgcolor="#3B556D",
-                                overlay_color="#5FC2BA", 
+                                overlay_color="#0080ff", 
                                  
                             ),
                         ),
@@ -72,7 +72,7 @@ def outils(router_data: Union[Router, str, None] = None):
                                 shape=ft.RoundedRectangleBorder(radius=10),
                                 color="#FFFFFF",
                                 bgcolor="#3B556D",  
-                                overlay_color="#5FC2BA",
+                                overlay_color="#0080ff",
                             ),
                             
                         ),
@@ -87,7 +87,7 @@ def outils(router_data: Union[Router, str, None] = None):
                                 shape=ft.RoundedRectangleBorder(radius=10),
                                 color="#FFFFFF",
                                 bgcolor="#3B556D",  
-                                overlay_color="#5FC2BA",
+                                overlay_color="#0080ff",
                             ),
                         ),
                         ft.FilledButton(
@@ -101,7 +101,7 @@ def outils(router_data: Union[Router, str, None] = None):
                                 shape=ft.RoundedRectangleBorder(radius=10),
                                 color="#FFFFFF",
                                 bgcolor="#3B556D", 
-                                overlay_color="#5FC2BA",                               
+                                overlay_color="#0080ff",                               
                             ),
                         ),
                         ft.FilledButton(
@@ -114,7 +114,7 @@ def outils(router_data: Union[Router, str, None] = None):
                                 shape=ft.RoundedRectangleBorder(radius=10),
                                  color="#FFFFFF",
                                 bgcolor="#3B556D",
-                                overlay_color="#5FC2BA",  
+                                overlay_color="#0080ff",  
                             ),
                         ),
                         

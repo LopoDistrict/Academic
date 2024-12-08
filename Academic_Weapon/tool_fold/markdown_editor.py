@@ -112,7 +112,7 @@ def markdown_editor(router):
     )
 
     text_field = ft.TextField(
-        value="## Exemple MarkDown",  # the initial value in the field (a simple Markdown code to test)
+        value="## ecrivez ici, le rendu est en bas↓↓↓",  # the initial value in the field (a simple Markdown code to test)
         multiline=True,  # True means: it will be possible to have many lines of text
         on_change=update_preview,
         expand=True,  # tells the field to 'expand' (take all the available space)

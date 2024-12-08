@@ -4,6 +4,7 @@ import time
 import os.path
 import mysql.connector
 import ftplib
+import os
 
 
 class sql_data:
@@ -14,34 +15,72 @@ class sql_data:
             ".jpg.jpeg.png.webp": ft.icons.IMAGE,
             ".docx.txt.doc.odt": ft.icons.FOLDER_COPY_ROUNDED,
         }
-        self.page_height = 500
+        self.page_height = 1000
+
+        self.char = ('a','b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 
+    't', 'u', 'v', 'w', 'x', 'y', 'z','A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O'
+    , 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9')
+
+    def uniq_id(self):
+        id = ""
+        for i in range(10):            
+            id += self.char[random.randint(0, len(self.char))]
+        return id
 
     def send_data(self, e, target_page):
         time.sleep(0.1)
         e.scale = 2
         e.page.go(target_page)
 
-    def upload_document(self, path):
+
+    def upload_document_db(self, info_file):
+        mydb = mysql.connector.connect(
+            user="academic_togetherme",
+            password="5279abd1804fbed3cd683f591a5b51001acc32f2",
+            host="72con.h.filess.io",
+            database="academic_togetherme",
+            port=3306,
+        )
+
+        mycursor = mydb.cursor()
+        mycursor.execute("SELECT TOP 1 num_document FROM document ORDER BY num_document DESC ")
+        myresult = mycursor.fetchall()
+
+        mycursor.execute(
+            #pour l'instant dans isèuser on met null le temps de finir l'authentificator
+            f"INSERT INTO document VALUES({uniq_id}, {e.title.value}, {e.description.value}, {info_file}, SYSDATE, NULL, {myresult[0]})"
+        )
+        
+        mycursor.close()
+        mydb.close()
+        
+
+    #mettre des try et except
+    
+    def upload_document_ftp(self, path):
         ftp_server = ftplib.FTP("ftpupload.net", "if0_37857418", "DjZERKKLUQIgSbl")
         ftp_server.encoding = "utf-8"
 
         with open(path, "wb") as file:
             ftp_server.retrbinary(f"RETR {path}", file.write)
 
+         #taille
         ftp_server.dir()
 
         with open(path, "r") as file:
             print("File Content:", file.read())
 
         ftp_server.quit()
+        upload_document_db(os.path.getsize(path))
 
     def retrieve_data_server(self, e) -> tuple:
         # [0] title, [1] description, [2] size, [3] date, [4] size, [5] type
         mydb = mysql.connector.connect(
-            user="if0_37857418",
-            password="DjZERKKLUQIgSbl",
-            host="sql200.infinityfree.com",
-            database="if0_37857418_aw",
+            user="academic_togetherme",
+            password="5279abd1804fbed3cd683f591a5b51001acc32f2",
+            host="72con.h.filess.io",
+            database="academic_togetherme",
+            port=3306,
         )
 
         mycursor = mydb.cursor()
@@ -52,6 +91,8 @@ class sql_data:
         mycursor.close()
         mydb.close()
         return myresult
+        
+    
 
     def add_new_label(self, e):  # -> void
         for i in range(5):
@@ -59,6 +100,7 @@ class sql_data:
             if not value_retrived:
                 print("No more data to retrieve.")
                 return
+            taille = 0 #faire le calcul pour la taille
 
             self.index += 1
             nv_label = ft.Container(
@@ -66,17 +108,17 @@ class sql_data:
                     controls=[
                         ft.Column(
                             controls=[
-                                ft.Text(value_retrived[0], size=18, weight=ft.FontWeight.BOLD),
-                                ft.Text(value_retrived[1], size=15),
+                                ft.Text(value_retrived[1], size=18, weight=ft.FontWeight.BOLD),
+                                ft.Text(value_retrived[2], size=15),
                                 ft.Text(
-                                    f"{value_retrived[2]} • {value_retrived[5]}",
+                                    f"{taille} • {value_retrived[1].split('.')[-1]}",
                                     size=12,
                                     color="#d2dbe3",
                                 ),
                                 ft.Text(f"Par {value_retrived[5]}", size=11, color="#5af979"),
                             ]
                         ),
-                        ft.Icon(name=self.extension_file.get(".pdf", ft.icons.FILE), size=60),
+                        ft.Icon(name=self.extension_file.get(value_retrived[1].split('.')[-1]), size=60),
                     ],
                     alignment=ft.MainAxisAlignment.START,
                 ),
@@ -87,14 +129,63 @@ class sql_data:
             )
             e.page.add(nv_label)
 
-
 def communaute(router_data: Union[str, None] = None):
     etiquette = sql_data()
+
+    # Define the alert dialog
+    upload_alert = ft.AlertDialog(
+        modal=True,
+        title=ft.Text("Upload"),
+        content=ft.Container(
+            ft.Column(
+                [
+                    ft.TextField(
+                        label="Titre",
+                        border=ft.InputBorder.UNDERLINE,
+                        filled=True,
+                        hint_text="Entrez le titre de votre document",
+                    ),
+                    ft.TextField(
+                        label="Description (courte)",
+                        border=ft.InputBorder.UNDERLINE,
+                        filled=True,
+                        hint_text="Entrez une courte description",
+                    ),
+
+                ],
+            ),
+        ),
+        actions=[
+            ft.FilledButton(
+                text="Upload",
+                icon=ft.icons.CLOUD_UPLOAD,
+                #on_click=...
+                width=125,
+                height=45,
+                style=ft.ButtonStyle(bgcolor="#48dc03", color="#FFFFFF", overlay_color="#55ec04"),
+            ),
+            ft.FilledButton(
+                text="Annuler",
+                icon=ft.icons.CANCEL,
+                #on_click=...
+                width=125,
+                height=45,
+                style=ft.ButtonStyle(bgcolor="#dd050f", color="#FFFFFF", overlay_color="#ee030d"),
+            ),
+            #ft.TextButton("Yes", on_click=lambda e: print("Confirmed deletion")),
+            #ft.TextButton("No", on_click=lambda e: e.page.dialog.close()),
+        ],
+        actions_alignment=ft.MainAxisAlignment.END,
+    )
+
+    # Define the page content
     content = ft.Container(
         content=ft.Column(
             controls=[
-                ft.TextField(
-                    label="Chercher des documents...",
+                ft.SearchBar(
+                    view_elevation=4,
+                    divider_color=ft.Colors.AMBER,
+                    bar_hint_text="Chercher des documents...",
                     on_change=lambda e: print("Search:", e.control.value),
                 ),
                 ft.Text(
@@ -103,6 +194,24 @@ def communaute(router_data: Union[str, None] = None):
                     weight=ft.FontWeight.BOLD,
                 ),
                 ft.Divider(height=5, color="white"),
+                
+                # FloatingActionButton in a responsive Container
+                ft.Container(
+                    content=ft.Row(
+                        controls=[
+                            ft.FloatingActionButton(
+                                icon=ft.icons.ADD,
+                                height=50,
+                                width=50,
+                                on_click=lambda e: e.page.open(upload_alert),
+                            ),
+                        ],
+                        alignment=ft.MainAxisAlignment.END,
+                    ),
+                    padding=15,
+                ),
+                
+                
                 ft.Row(
                     controls=[
                         ft.FilledButton(
