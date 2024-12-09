@@ -5,6 +5,7 @@ from tool_fold.pomodoro import pomodoro
 from tool_fold.simple_editeur import simple_editeur
 from tool_fold.todo import todo
 from tool_fold.markdown_editor import markdown_editor
+from tool_fold.flash_cards import flash_cards
 from communaute import communaute
 #from tool_fold.doc import doc
 
@@ -17,6 +18,7 @@ router.routes = {
   "/simple_editeur": simple_editeur,
   "/todo": todo,
   "/markdown_editor": markdown_editor,
+  "/flash_cards": flash_cards,
   "/communaute": communaute
   #"/doc": doc
 }

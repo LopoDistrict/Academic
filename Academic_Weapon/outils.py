@@ -77,6 +77,20 @@ def outils(router_data: Union[Router, str, None] = None):
                             
                         ),
                         ft.ElevatedButton(
+                            icon=ft.icons.FLIP,
+                            text="Flash Cards",
+                            width=60,
+                            height=80,
+                            on_click=lambda e: send_data(e, "/flash_cards"),
+                            style=ft.ButtonStyle(
+                                shape=ft.RoundedRectangleBorder(radius=10),
+                                color="#FFFFFF",
+                                bgcolor="#3B556D",  
+                                overlay_color="#0080ff",
+                            ),
+                            
+                        ),
+                        ft.ElevatedButton(
                             icon=ft.icons.MULTITRACK_AUDIO_SHARP,
                             text="Note Audio",
                             width=60,

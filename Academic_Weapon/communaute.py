@@ -131,6 +131,9 @@ class sql_data:
 
 def communaute(router_data: Union[str, None] = None):
     etiquette = sql_data()
+    
+    def handle_close(e):
+        e.page.close(upload_alert)
 
     # Define the alert dialog
     upload_alert = ft.AlertDialog(
@@ -143,35 +146,83 @@ def communaute(router_data: Union[str, None] = None):
                         label="Titre",
                         border=ft.InputBorder.UNDERLINE,
                         filled=True,
-                        hint_text="Entrez le titre de votre document",
+                        hint_text="Entrez un titre",
+
                     ),
                     ft.TextField(
                         label="Description (courte)",
                         border=ft.InputBorder.UNDERLINE,
                         filled=True,
                         hint_text="Entrez une courte description",
+                        multiline=True,
+                        max_lines=4,
                     ),
 
+                    
+                    ft.Dropdown(
+                        width=225,
+                        hint_text="Entrez le sujet ou la matière",
+                        options=[
+                            ft.dropdown.Option("Maths"),
+                            ft.dropdown.Option("Biologie"),
+                            ft.dropdown.Option("Informatique"),
+                            ft.dropdown.Option("Littérature"),
+                            ft.dropdown.Option("Anglais"),
+                            ft.dropdown.Option("Langues Internationales"),
+                            ft.dropdown.Option("Histoires/Geographie"),
+                            ft.dropdown.Option("Geopolitique"),
+                            ft.dropdown.Option("Philosophie"),
+                            ft.dropdown.Option("Economie"),
+                            ft.dropdown.Option("Physique/Chimie"),
+                            ft.dropdown.Option("Art"),
+                            ft.dropdown.Option("Droit"),
+                            ft.dropdown.Option("Ingénieurie"),
+                            ft.dropdown.Option("Médecine"),
+                            ft.dropdown.Option("Divers"),
+                            ft.dropdown.Option("Autre"),
+                        ],
+                    ),
+
+                    ft.FilledButton(
+                        text="Choisir un fichier à upload",
+                        icon=ft.icons.FILE_PRESENT,
+                        width=225,                        
+                        height=50,
+                        
+                        style=ft.ButtonStyle(
+                            bgcolor="#1582ee", 
+                            color="#FFFFFF", 
+                            overlay_color="#2d8ff0",
+                            shape=ft.RoundedRectangleBorder(radius=7),),
+                    ),
+                    ft.Radio(value="Accept", label="Cet Upload Respecte les C.U"),
                 ],
-            ),
+                spacing=15,
+            )
         ),
         actions=[
-            ft.FilledButton(
-                text="Upload",
-                icon=ft.icons.CLOUD_UPLOAD,
-                #on_click=...
-                width=125,
-                height=45,
-                style=ft.ButtonStyle(bgcolor="#48dc03", color="#FFFFFF", overlay_color="#55ec04"),
+            ft.ResponsiveRow(
+                [
+                     ft.FilledButton(
+                    text="Upload",
+                    icon=ft.icons.CLOUD_UPLOAD,
+                    #on_click=...
+                    width=125,
+                    height=45,
+                    style=ft.ButtonStyle(bgcolor="#48dc03", color="#FFFFFF", overlay_color="#55ec04"),
+                    ),
+                    ft.FilledButton(
+                        text="Annuler",
+                        icon=ft.icons.CANCEL,
+                        on_click=handle_close,
+                        width=125,
+                        height=45,
+                        style=ft.ButtonStyle(bgcolor="#dd050f", color="#FFFFFF", overlay_color="#ee030d"),
+                    ),
+                ],
+                
             ),
-            ft.FilledButton(
-                text="Annuler",
-                icon=ft.icons.CANCEL,
-                #on_click=...
-                width=125,
-                height=45,
-                style=ft.ButtonStyle(bgcolor="#dd050f", color="#FFFFFF", overlay_color="#ee030d"),
-            ),
+           
             #ft.TextButton("Yes", on_click=lambda e: print("Confirmed deletion")),
             #ft.TextButton("No", on_click=lambda e: e.page.dialog.close()),
         ],
