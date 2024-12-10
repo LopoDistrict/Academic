@@ -25,11 +25,11 @@ def markdown_editor(router):
         file_path = fs.write_to_file("./document/"+nom_fic.value+".md", text_field.value)
         
         e.page.snack_bar = ft.SnackBar(
-            ft.Text(f"Fichier sauvegardé: {self.nom_fic.value}")
+            ft.Text(f"Fichier sauvegardé: {nom_fic.value}")
         )
         e.page.snack_bar.open = True
         e.page.update()
-        e.page.close(self.dlg_modal)
+        e.page.close(dlg_modal)
         
 
 
@@ -112,7 +112,7 @@ def markdown_editor(router):
     )
 
     text_field = ft.TextField(
-        value="## ecrivez ici, le rendu est en bas↓↓↓",  # the initial value in the field (a simple Markdown code to test)
+        value="## ecrivez ici, le rendu est en bas vv",  # the initial value in the field (a simple Markdown code to test)
         multiline=True,  # True means: it will be possible to have many lines of text
         on_change=update_preview,
         expand=True,  # tells the field to 'expand' (take all the available space)

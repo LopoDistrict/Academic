@@ -5,41 +5,53 @@ from random import choice
 def flash_cards(router):
     def add_new_card(e):
 
+
         def get_random_hex_color():
             return '#' + ''.join([choice('0123456789ABCDEF') for _ in range(6)])
 
+        couleur_fond = get_random_hex_color()
+        """
+        if color_choice.value == "Rouge":
+            couleur_fond = "#ff0000"
+        elif color_choice.value == "Vert":
+            couleur_fond = "#17e302"
+        elif color_choice.value == "Bleu":
+            couleur_fond = "#0061ff"
+            """
+
         def flip_card(t):
-            stack = card.content  # Access the Stack inside the Container
+            stack = card.content  
             stack.controls[0].visible = not stack.controls[0].visible
             stack.controls[1].visible = not stack.controls[1].visible
             stack.update()
 
-        # Create the card container with flip functionality
         card = ft.Container(
-            content=ft.Stack(
+            content=ft.ResponsiveRow(
                 [
                     ft.Container(
                         ft.Text(question.value, size=20, weight=ft.FontWeight.BOLD),
                         alignment=ft.alignment.center,
-                        bgcolor=get_random_hex_color(),
+                        bgcolor=couleur_fond,
                         expand=True,
                         visible=True,  # Initially the question is visible
                     ),
                     ft.Container(
                         ft.Text(response.value, size=20, weight=ft.FontWeight.BOLD),
                         alignment=ft.alignment.center,
-                        bgcolor=get_random_hex_color(),
+                        bgcolor=couleur_fond,
                         expand=True,
                         visible=False,  # Initially the response is hidden
                     ),
                 ],
+                alignment=ft.MainAxisAlignment.CENTER,
             ),
-            width=300,
+            width=500,
             height=200,
-            bgcolor=get_random_hex_color(), #mettre un color picker
+            bgcolor="#FFFFFF", #mettre un color picker
             border_radius=10,
             on_click=flip_card,
             padding=10,
+            
         )
         cards_column.controls.append(card)
         e.page.close(dlg_modal)
@@ -48,10 +60,8 @@ def flash_cards(router):
 
 
     def handle_close(e):
-        e.page.open = False
+        e.page.close(dlg_modal)
         e.page.update()
-
-
 
     # Text fields for question and response
     question = ft.TextField(
@@ -72,9 +82,18 @@ def flash_cards(router):
         max_lines=4,
     )
 
-    # Dialog for adding a new card
+    color_choice = ft.Dropdown(
+                        width=225,
+                        hint_text="Entrez une couleur",
+                        options=[
+                            ft.dropdown.Option("Rouge"),
+                            ft.dropdown.Option("Vert"),
+                            ft.dropdown.Option("Bleu"),
+                            ft.dropdown.Option("Random"),
+                        ],
+                    ),
+
     dlg_modal = ft.AlertDialog(
-        modal=True,
         title=ft.Text("Nouvelle Carte"),
         content=ft.Column(
             [
@@ -92,15 +111,23 @@ def flash_cards(router):
                 alignment=ft.MainAxisAlignment.END,
             )
         ],
+        
     )
 
     # Add and save buttons
-    add_button = ft.FilledButton(
-        text="Ajouter",
+    add_button = ft.OutlinedButton(
+        text="Ajouter une carte",
         icon=ft.icons.ADD,
         on_click=lambda e: e.page.open(dlg_modal),
-        style=ft.ButtonStyle(bgcolor="#3B556D", color="#FFFFFF"),
+        height=45,
+        width=200,
+        style=ft.ButtonStyle( 
+        color="#FFFFFF",
+            overlay_color="#0080ff",
+            shape=ft.RoundedRectangleBorder(radius=7),
+        ),
     )
+    
 
 
 
@@ -117,7 +144,9 @@ def flash_cards(router):
             ft.Row(
                 [add_button],
                 spacing=10,
+                alignment=ft.MainAxisAlignment.CENTER,
             ),
+            
             ft.Divider(height=5, color="white"),
             cards_column,
         ],

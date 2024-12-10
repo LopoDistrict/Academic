@@ -1,10 +1,10 @@
 import flet as ft
 from typing import Union
+import random  # Import missing module
 import time
 import os.path
 import mysql.connector
 import ftplib
-import os
 
 
 class sql_data:
@@ -17,23 +17,31 @@ class sql_data:
         }
         self.page_height = 1000
 
-        self.char = ('a','b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 
-    't', 'u', 'v', 'w', 'x', 'y', 'z','A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O'
-    , 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9')
+        self.char = (
+            'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's',
+            't', 'u', 'v', 'w', 'x', 'y', 'z', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O',
+            'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'
+        )
 
     def uniq_id(self):
-        id = ""
-        for i in range(10):            
-            id += self.char[random.randint(0, len(self.char))]
-        return id
+        return ''.join(random.choice(self.char) for _ in range(10))
 
+    def pick_files_result(self, e: ft.FilePickerResultEvent):
+        print("___start pick_files_result")
+        if e.files:
+            file_names = ", ".join(f.name for f in e.files)
+            print(f"Files selected: {file_names}")
+        else:
+            print("File selection cancelled.")
+
+    
     def send_data(self, e, target_page):
         time.sleep(0.1)
         e.scale = 2
         e.page.go(target_page)
 
 
-    def upload_document_db(self, info_file):
+    def upload_document_db(self, e, info_file):
         mydb = mysql.connector.connect(
             user="academic_togetherme",
             password="5279abd1804fbed3cd683f591a5b51001acc32f2",
@@ -56,22 +64,21 @@ class sql_data:
         
 
     #mettre des try et except
-    
+
     def upload_document_ftp(self, path):
         ftp_server = ftplib.FTP("ftpupload.net", "if0_37857418", "DjZERKKLUQIgSbl")
         ftp_server.encoding = "utf-8"
 
         with open(path, "wb") as file:
             ftp_server.retrbinary(f"RETR {path}", file.write)
-
          #taille
         ftp_server.dir()
-
         with open(path, "r") as file:
             print("File Content:", file.read())
 
         ftp_server.quit()
         upload_document_db(os.path.getsize(path))
+
 
     def retrieve_data_server(self, e) -> tuple:
         # [0] title, [1] description, [2] size, [3] date, [4] size, [5] type
@@ -131,7 +138,101 @@ class sql_data:
 
 def communaute(router_data: Union[str, None] = None):
     etiquette = sql_data()
-    
+    selected_file = {}  # Dictionary to store file information
+
+    def add_file_pick(e):
+        print("___start add_file_pick")
+        pick_files_dialog.pick_files()
+
+    def on_file_pick_result(e: ft.FilePickerResultEvent):
+        print("___start pick_files_result")
+        if e.files:
+            selected_file['path'] = e.files[0].path  # Store the file path
+            selected_file['name'] = e.files[0].name  # Store the file name
+            print(f"File selected: {selected_file['name']}")
+        else:
+            print("File selection cancelled.")
+
+    def handle_upload(e):
+        # Check if a file has been selected
+        if 'path' not in selected_file:
+            print("No file selected!")
+            return
+
+        # Upload the file to the FTP server
+        try:
+            etiquette.upload_document_ftp(selected_file['path'])
+            print("File uploaded to FTP server.")
+
+            # Save metadata to the database
+            etiquette.upload_document_db(e, selected_file['name'])
+            print("File data uploaded to database.")
+        except Exception as ex:
+            print(f"Error during upload: {ex}")
+
+    # Initialize the file picker
+    pick_files_dialog = ft.FilePicker(on_result=on_file_pick_result)
+
+    # Add the file picker dialog to the page overlay
+    def setup_file_picker(page):
+        if pick_files_dialog not in page.overlay:
+            page.overlay.append(pick_files_dialog)
+
+    # Page content
+    titre = ft.TextField(
+        label="Titre",
+        border=ft.InputBorder.UNDERLINE,
+        filled=True,
+        hint_text="Entrez un titre",
+    )
+    description = ft.TextField(
+        label="Description (courte)",
+        border=ft.InputBorder.UNDERLINE,
+        filled=True,
+        hint_text="Entrez une courte description",
+        multiline=True,
+        max_lines=4,
+    )
+    matiere = ft.Dropdown(
+        width=225,
+        hint_text="Entrez le sujet ou la matière",
+        options=[
+            ft.dropdown.Option("Maths"),
+            ft.dropdown.Option("Biologie"),
+            ft.dropdown.Option("Informatique"),
+            ft.dropdown.Option("Littérature"),
+            ft.dropdown.Option("Anglais"),
+            ft.dropdown.Option("Langues Internationales"),
+            ft.dropdown.Option("Histoires/Geographie"),
+            ft.dropdown.Option("Geopolitique"),
+            ft.dropdown.Option("Philosophie"),
+            ft.dropdown.Option("Economie"),
+            ft.dropdown.Option("Physique/Chimie"),
+            ft.dropdown.Option("Art"),
+            ft.dropdown.Option("Droit"),
+            ft.dropdown.Option("Ingénieurie"),
+            ft.dropdown.Option("Médecine"),
+            ft.dropdown.Option("Divers"),
+            ft.dropdown.Option("Autre"),
+        ],
+    )
+
+    file_pick_button = ft.FilledButton(
+        text="Choisir un fichier à upload",
+        icon=ft.icons.FILE_PRESENT,
+        width=225,
+        height=50,
+        on_click=add_file_pick,  # Attach the correct function
+        style=ft.ButtonStyle(
+            bgcolor="#1582ee",
+            color="#FFFFFF",
+            overlay_color="#2d8ff0",
+            shape=ft.RoundedRectangleBorder(radius=7),
+        ),
+    )
+
+    tos = ft.Radio(value="Accept", label="Cet Upload Respecte les C.U")
+
     def handle_close(e):
         e.page.close(upload_alert)
 
@@ -142,60 +243,11 @@ def communaute(router_data: Union[str, None] = None):
         content=ft.Container(
             ft.Column(
                 [
-                    ft.TextField(
-                        label="Titre",
-                        border=ft.InputBorder.UNDERLINE,
-                        filled=True,
-                        hint_text="Entrez un titre",
-
-                    ),
-                    ft.TextField(
-                        label="Description (courte)",
-                        border=ft.InputBorder.UNDERLINE,
-                        filled=True,
-                        hint_text="Entrez une courte description",
-                        multiline=True,
-                        max_lines=4,
-                    ),
-
-                    
-                    ft.Dropdown(
-                        width=225,
-                        hint_text="Entrez le sujet ou la matière",
-                        options=[
-                            ft.dropdown.Option("Maths"),
-                            ft.dropdown.Option("Biologie"),
-                            ft.dropdown.Option("Informatique"),
-                            ft.dropdown.Option("Littérature"),
-                            ft.dropdown.Option("Anglais"),
-                            ft.dropdown.Option("Langues Internationales"),
-                            ft.dropdown.Option("Histoires/Geographie"),
-                            ft.dropdown.Option("Geopolitique"),
-                            ft.dropdown.Option("Philosophie"),
-                            ft.dropdown.Option("Economie"),
-                            ft.dropdown.Option("Physique/Chimie"),
-                            ft.dropdown.Option("Art"),
-                            ft.dropdown.Option("Droit"),
-                            ft.dropdown.Option("Ingénieurie"),
-                            ft.dropdown.Option("Médecine"),
-                            ft.dropdown.Option("Divers"),
-                            ft.dropdown.Option("Autre"),
-                        ],
-                    ),
-
-                    ft.FilledButton(
-                        text="Choisir un fichier à upload",
-                        icon=ft.icons.FILE_PRESENT,
-                        width=225,                        
-                        height=50,
-                        
-                        style=ft.ButtonStyle(
-                            bgcolor="#1582ee", 
-                            color="#FFFFFF", 
-                            overlay_color="#2d8ff0",
-                            shape=ft.RoundedRectangleBorder(radius=7),),
-                    ),
-                    ft.Radio(value="Accept", label="Cet Upload Respecte les C.U"),
+                    titre,
+                    description,
+                    matiere,
+                    file_pick_button,
+                    tos,
                 ],
                 spacing=15,
             )
@@ -203,13 +255,13 @@ def communaute(router_data: Union[str, None] = None):
         actions=[
             ft.ResponsiveRow(
                 [
-                     ft.FilledButton(
-                    text="Upload",
-                    icon=ft.icons.CLOUD_UPLOAD,
-                    #on_click=...
-                    width=125,
-                    height=45,
-                    style=ft.ButtonStyle(bgcolor="#48dc03", color="#FFFFFF", overlay_color="#55ec04"),
+                    ft.FilledButton(
+                        text="Upload",
+                        icon=ft.icons.CLOUD_UPLOAD,
+                        on_click=handle_upload,  # Trigger the upload
+                        width=125,
+                        height=45,
+                        style=ft.ButtonStyle(bgcolor="#48dc03", color="#FFFFFF", overlay_color="#55ec04"),
                     ),
                     ft.FilledButton(
                         text="Annuler",
@@ -220,11 +272,7 @@ def communaute(router_data: Union[str, None] = None):
                         style=ft.ButtonStyle(bgcolor="#dd050f", color="#FFFFFF", overlay_color="#ee030d"),
                     ),
                 ],
-                
             ),
-           
-            #ft.TextButton("Yes", on_click=lambda e: print("Confirmed deletion")),
-            #ft.TextButton("No", on_click=lambda e: e.page.dialog.close()),
         ],
         actions_alignment=ft.MainAxisAlignment.END,
     )
@@ -233,20 +281,12 @@ def communaute(router_data: Union[str, None] = None):
     content = ft.Container(
         content=ft.Column(
             controls=[
-                ft.SearchBar(
-                    view_elevation=4,
-                    divider_color=ft.Colors.AMBER,
-                    bar_hint_text="Chercher des documents...",
-                    on_change=lambda e: print("Search:", e.control.value),
-                ),
                 ft.Text(
                     "Document récents de la communauté",
                     size=20,
                     weight=ft.FontWeight.BOLD,
                 ),
                 ft.Divider(height=5, color="white"),
-                
-                # FloatingActionButton in a responsive Container
                 ft.Container(
                     content=ft.Row(
                         controls=[
@@ -254,15 +294,13 @@ def communaute(router_data: Union[str, None] = None):
                                 icon=ft.icons.ADD,
                                 height=50,
                                 width=50,
-                                on_click=lambda e: e.page.open(upload_alert),
+                                on_click=lambda e: (setup_file_picker(e.page), e.page.open(upload_alert)),
                             ),
                         ],
                         alignment=ft.MainAxisAlignment.END,
                     ),
                     padding=15,
                 ),
-                
-                
                 ft.Row(
                     controls=[
                         ft.FilledButton(
@@ -285,4 +323,5 @@ def communaute(router_data: Union[str, None] = None):
         ),
         height=etiquette.page_height,
     )
+
     return content
