@@ -1,0 +1,11 @@
+id,question,answer
+fCXhFIyfSZ,qs,sqsqds
+5Yc0FggOxQ,ssdqsdqdqs,sqdqdsqd
+iJvpTarCi0,"quelle est la valeur de i à la fin
+for (int i=0; i<7; i++)",i = 6;
+0htH1vZSaM,comment parcourir vector<vector<int>> f;,"for(int i=0; f.size();i++){
+for(int j=0; f[i].size(); j++){
+cout << f[i][j];
+}
+}
+"
