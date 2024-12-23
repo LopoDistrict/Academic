@@ -346,7 +346,6 @@ def communaute(router_data: Union[str, None] = None):
                     size=20,
                     weight=ft.FontWeight.BOLD,
                 ),
-                ft.Divider(height=5, color="white"),
                 ft.Container(
                     content=ft.Row(
                         controls=[

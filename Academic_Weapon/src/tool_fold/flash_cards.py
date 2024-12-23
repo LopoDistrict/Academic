@@ -58,6 +58,8 @@ def flash_cards(router):
             padding=10,
             
         )
+        response.value = ""
+        question.value = ""
         cards_column.controls.append(card)
         e.page.close(dlg_modal)
         e.page.update()

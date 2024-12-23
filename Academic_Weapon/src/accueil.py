@@ -19,25 +19,26 @@ def send_data(e, target_page):
 def is_nv_streak():
     fs = file_manager.FileSystem()
     
-    last_connection_str = fs.read_given_line("assets/user_data/user_log.txt", 1).strip()
+    last_connection_str = fs.read_given_line("assets/user_data/user_log.txt", 2).strip()
     last_connection = datetime.datetime.strptime(last_connection_str, "%Y/%m/%d")
 
     actual_date = datetime.datetime.now().date()
 
     fs.append_file(actual_date.strftime("%Y/%m/%d"), 2, "assets/user_data/user_log.txt")
-    anc = int(fs.read_given_line("assets/user_data/user_log.txt", 2).strip())
+    anc = int(fs.read_given_line("assets/user_data/user_log.txt", 0).strip())
 
     days_diff = (actual_date - last_connection.date()).days
 
     
     if days_diff >= 2:
-        fs.append_file("0", 3, "assets/user_data/user_log.txt")
+        fs.append_file("0", 0, "assets/user_data/user_log.txt")
         return "0"
 
     if days_diff >= 1:
         new_streak = anc + 1
-        fs.append_file(str(new_streak), 3, "assets/user_data/user_log.txt")
+        fs.append_file(str(new_streak), 0, "assets/user_data/user_log.txt")
         old_xp = fs.read_given_line('assets/user_data/user_log.txt', 3)
+        
         fs.append_file(int(old_xp) + randint(9,15), 3, 'assets/user_data/user_log.txt') #on lui ajoute de l'xp
         
         return new_streak
@@ -126,7 +127,7 @@ def accueil(router_data: Union[Router, str, None] = None):
                         [
                             ft.Text(
                                 "Heure travaillé: "
-                                + str(int(fs.read_given_line("assets/user_data/user_log.txt", 0)) / 60)[
+                                + str(int(fs.read_given_line("assets/user_data/user_log.txt", 1)) / 60)[
                                     0:4
                                 ]
                                 + " min.",

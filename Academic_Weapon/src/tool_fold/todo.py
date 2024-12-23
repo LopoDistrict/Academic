@@ -1,7 +1,13 @@
 import flet as ft
 import datetime
+from . import file_manager
+
+
 
 def todo(router):
+
+
+
     class Task(ft.Column):
         def __init__(self, task_name, task_date, task_status_change, task_delete):
             super().__init__()
@@ -60,6 +66,7 @@ def todo(router):
                 ],
             )
             self.controls = [self.display_view, self.edit_view]
+
 
             
 
@@ -152,7 +159,22 @@ def todo(router):
                     ],
                 ),
             ]
+        
+        
+        
+        def get_saved(self):
+            fs = file_manager.FileSystem()
+            tasks_saved = fs.matrix_csv("assets/user_data/to_do.csv")
 
+            for i in range(len(tasks_saved)):
+                temp = Task(tasks_saved[i][0],tasks_saved[i][1], self.task_status_change, self.task_delete)
+                self.tasks.controls.append(temp)
+                self.update()
+            
+
+
+
+                
         def show_date_picker(self, e):
             x = datetime.datetime.now()
 
@@ -185,6 +207,11 @@ def todo(router):
 
         def add_clicked(self, e):
             if self.new_task.value:
+                fs = file_manager.FileSystem()
+                value = [self.new_task.value,self.selected_date]
+                print(value)
+                fs.app_csv("assets/user_data/to_do.csv", value)
+
                 task_date = self.selected_date or "pas de Date"
                 task = Task(self.new_task.value, task_date, self.task_status_change, self.task_delete)
                 self.tasks.controls.append(task)
@@ -215,7 +242,7 @@ def todo(router):
                 if not task.completed:
                     count += 1
             self.items_left.value = f"{count} tâches restantes"
+    
+        self.get_saved()
+
     return TodoApp()
-
-
-

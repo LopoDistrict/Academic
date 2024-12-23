@@ -4,7 +4,7 @@ import os.path, time
 import datetime
 import random
 
-#import csv
+import csv
 
 class FileSystem:
     def __init__(self):
@@ -109,7 +109,7 @@ class FileSystem:
         with open(file_path, 'r') as file:
             lines = file.readlines()
 
-        lines[line - 1] = str(value) + '\n'
+        lines[line] = str(value) + '\n'
 
         with open(file_path, "w") as file:
             file.writelines(lines)
@@ -133,8 +133,8 @@ class FileSystem:
 
 
     def app_csv(self, path, value):
-        file_path = self.get_file_path(path)        
-        with open(file_path, 'a', newline='') as fileTemp:
+        file_path = self.get_file_path(path)
+        with open(file_path, 'a', newline='') as fileTemp:  
             csvwriter = csv.writer(fileTemp)
             csvwriter.writerow(value)
 

@@ -164,8 +164,14 @@ def pomodoro(router):
         def write_time(self, value):   
             fs = file_manager.FileSystem()
             file_path = "./assets/user_data/user_log.txt"  
-            anc_val = int(fs.read_given_line("assets/user_data/user_log.txt", 0))       
-            fs.append_file(str(int(value) + int(anc_val)), 0, file_path)
+            anc_val = int(fs.read_given_line("assets/user_data/user_log.txt", 1))       
+            fs.append_file(str(int(value) + int(anc_val)), 1, file_path)
+
+            page.snack_bar = ft.SnackBar(
+                ft.Text(f"Date sélectionnée: {self.selected_date}")
+            )
+            page.snack_bar.open = True
+            page.update()
                 
 
         def run_timer(self):

@@ -2,6 +2,23 @@ import flet as ft
 from tool_fold.routes import router
 from tool_fold import file_manager
 import os
+from random import randint, choice
+import time
+
+def check_debbug():
+    time.sleep(1)
+    files = ("accueil.py", "communaute.py", "librairie.py", "outils.py", "State.py",
+    "tool_fold/doc.py", "tool_fold/file_manager.py", "tool_fold/flash_cards.py",
+    "tool_fold/markdown_editor.py", "tool_fold/note.py", "tool_fold/pomodoro.py",
+    "tool_fold/Router.py", "tool_fold/routes.py", "tool_fold/routes.py", 
+    "tool_fold/simple_editeur.py", "tool_fold/todo.py")
+    fs = file_manager.FileSystem()
+
+    for i in range(len(files)):
+        if (not fs.file_exists(files[i])):
+            return False
+    return True
+
 
 def main(page: ft.Page):
     page.update()
@@ -13,6 +30,14 @@ def main(page: ft.Page):
     page.window.width = 375
     page.padding = ft.padding.only(left=16, top=50, right=16)
     page.scroll = ft.ScrollMode.HIDDEN
+    quote_list = [
+        "Il est difficile d'échouer, mais il est pire de n'avoir jamais essayé de réussir ~ T.Roosevelt",
+        "Votre paresse est un manque de respect pour les personnes qui croient en vous",
+        "L'éducation est l'arme la plus puissante que vous puissiez utiliser pour changer le monde. ~B.B. King",
+        "L'esprit n'est pas un récipient à remplir, mais un feu à allumer ~Plutarque",
+        "La procrastination rend les choses faciles difficiles et les choses difficiles plus difficiles. ~Mason Cooley",
+        "L'expert en quoi que ce soit a déjà été un débutant . ~Helen Hayes",
+        "Apprendre d'hier. Vivre pour aujourd'hui. Espérez pour demain. ~ Albert Einstein" ]
     #page.window_full_screen = True
 
     
@@ -71,7 +96,46 @@ def main(page: ft.Page):
             page.add(ft.Text("Failed to grant required permissions."))
 
 
+    loading_screen =ft.ResponsiveRow(
+        [
+            ft.Container(
+            content=ft.Column(
+                [
+                    ft.ResponsiveRow(
+                        [
+                            ft.Text("Chargement", size=25, weight=ft.FontWeight.BOLD),                
+                            ft.Image(
+                                src="src/assets/icon.png",
+                                width=50,
+                                height=50,
+                                fit=ft.ImageFit.NONE,
+                                repeat=ft.ImageRepeat.NO_REPEAT,
+                                border_radius=ft.border_radius.all(10),
+                            ),
+                            ft.ProgressBar(width=400, color="#0080ff", bgcolor="#eeeeee"),
+                            ft.Text(f"{choice(quote_list)}", size=15, weight=ft.FontWeight.BOLD, italic=True),
+                        ],
+                    ),
+                ],
+                alignment=ft.MainAxisAlignment.CENTER,
+                
+            ),
+            alignment=ft.alignment.center,
+            padding=ft.padding.all(20),  
+        ),
+        ],
+        spacing=35,
+    )
+     
 
+    page.add(loading_screen)
+
+    #time.sleep(3)
+    print(check_debbug())
+    loading_screen.controls.clear()
+    page.update()
+
+    """
     permission_container.controls.append(
         ft.Column(
             controls=[
@@ -84,7 +148,7 @@ def main(page: ft.Page):
                 ),
             ]
         )
-    )
+    )"""
 
     def handle_nav_change(e):
         selected_index = e.control.selected_index
@@ -117,5 +181,6 @@ def main(page: ft.Page):
     )
 
     page.update()
+    page.go("/")
 
 ft.app(target=main, assets_dir="assets")
