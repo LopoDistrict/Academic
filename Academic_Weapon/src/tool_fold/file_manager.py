@@ -140,3 +140,50 @@ class FileSystem:
 
     def uniq_id(self):
         return ''.join(random.choice(self.char) for _ in range(10))
+
+    def search_line_csv(self, path, value):
+        file_path = self.get_file_path(path)
+        with open(file_path, mode ='r') as file_csv:
+            i = 0
+            csv_file = csv.reader(file_csv)
+            for lines in csv_file:
+                if lines[0] == value[0] :
+                    
+                    return i
+                else:
+                    i+=1
+        return -1
+
+    def delete_row_csv(self, path, line_number):
+        input_file = self.get_file_path(path)
+        if line_number == 1:
+            line_number +=1
+        with open(input_file, mode='r', newline='', encoding='utf-8') as infile:
+            reader = list(csv.reader(infile))
+
+            if line_number > len(reader):
+                raise IndexError("line_number exceeds the number of rows in the file.")
+
+            # Remove the specified line (1-based index)
+            rows_to_keep = reader[:line_number - 1] + reader[line_number:]
+
+        with open(input_file, mode='w', newline='', encoding='utf-8') as outfile:
+            writer = csv.writer(outfile)
+            writer.writerows(rows_to_keep)
+
+
+    def replace_csv_row(self, path, line_number, new_row):
+        file_path = self.get_file_path(path)
+
+        #if line_number == 1:
+        line_number +=1
+
+        with open(file_path, mode='r', newline='', encoding='utf-8') as infile:
+            reader = list(csv.reader(infile))
+
+            reader[line_number - 1] = new_row
+
+        with open(file_path, mode='w', newline='', encoding='utf-8') as outfile:
+            writer = csv.writer(outfile)
+            writer.writerows(reader)
+

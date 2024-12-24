@@ -91,8 +91,22 @@ def outils(router_data: Union[Router, str, None] = None):
                             
                         ),
                         ft.ElevatedButton(
+                            icon=ft.icons.ACCOUNT_TREE_ROUNDED,
+                            text="chat/aide IA",
+                            width=60,
+                            height=80,
+                            on_click=lambda e: send_data(e, "/feed"),
+                            style=ft.ButtonStyle(
+                                shape=ft.RoundedRectangleBorder(radius=10),
+                                color="#FFFFFF",
+                                bgcolor="#3B556D",  
+                                overlay_color="#0080ff",
+                            ),
+                            
+                        ),
+                        ft.ElevatedButton(
                             icon=ft.icons.MULTITRACK_AUDIO_SHARP,
-                            text="Note Audio",
+                            text="Note Audio[à venir]",
                             width=60,
                             height=80,
                             on_click=send_data,
@@ -100,8 +114,7 @@ def outils(router_data: Union[Router, str, None] = None):
                             style=ft.ButtonStyle(
                                 shape=ft.RoundedRectangleBorder(radius=10),
                                 color="#FFFFFF",
-                                bgcolor="#3B556D",  
-                                overlay_color="#0080ff",
+                                bgcolor="#253543",                              
                             ),
                         ),
                         ft.FilledButton(
@@ -130,20 +143,7 @@ def outils(router_data: Union[Router, str, None] = None):
                                 bgcolor="#3B556D",
                                 overlay_color="#0080ff",  
                             ),
-                        ),
-                        ft.FilledButton(
-                            icon=ft.icons.ACCOUNT_TREE_ROUNDED,
-                            text="chat IA [à venir]",
-                            width=60,
-                            height=80,
-                            style=ft.ButtonStyle(
-                                shape=ft.RoundedRectangleBorder(radius=10),
-                                 color="#FFFFFF",
-                                bgcolor="#2e4254",
-                            ),
-                        ),
-                        
-                        
+                        ),                
                     ],
                     run_spacing={"xs": 10},
                     columns=1,

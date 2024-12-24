@@ -25,7 +25,7 @@ def main(page: ft.Page):
     page.theme_mode = "dark"
     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
     page.scroll = ft.ScrollMode.ADAPTIVE
-    page.bgcolor = "#151515"
+    page.bgcolor = "#0e0e0e"
     page.adaptive = True
     page.window.width = 375
     page.padding = ft.padding.only(left=16, top=50, right=16)
@@ -95,38 +95,67 @@ def main(page: ft.Page):
         else:
             page.add(ft.Text("Failed to grant required permissions."))
 
-
-    loading_screen =ft.ResponsiveRow(
+    loading_screen = ft.ResponsiveRow(
         [
             ft.Container(
-            content=ft.Column(
-                [
-                    ft.ResponsiveRow(
-                        [
-                            ft.Text("Chargement", size=25, weight=ft.FontWeight.BOLD),                
-                            ft.Image(
-                                src="src/assets/icon.png",
-                                width=50,
-                                height=50,
-                                fit=ft.ImageFit.NONE,
-                                repeat=ft.ImageRepeat.NO_REPEAT,
-                                border_radius=ft.border_radius.all(10),
-                            ),
-                            ft.ProgressBar(width=400, color="#0080ff", bgcolor="#eeeeee"),
-                            ft.Text(f"{choice(quote_list)}", size=15, weight=ft.FontWeight.BOLD, italic=True),
-                        ],
-                    ),
-                ],
-                alignment=ft.MainAxisAlignment.CENTER,
-                
+                content=ft.Column(
+                    [
+                        ft.ResponsiveRow(
+                            [
+                                ft.Text(
+                                    "Academic Weapon",
+                                    size=28,
+                                    weight=ft.FontWeight.BOLD,
+                                    text_align=ft.TextAlign.CENTER
+                                ),
+                            ],
+
+                        ),
+
+                        
+                        ft.Container(height=50), 
+                        ft.ResponsiveRow(
+                            [
+                                ft.Image(
+                                    src="src/assets/icon.png",
+                                    width=50,
+                                    height=50,
+                                    fit=ft.ImageFit.NONE,
+                                    repeat=ft.ImageRepeat.NO_REPEAT,
+                                    border_radius=ft.border_radius.all(10),
+                                ),
+                            ],
+
+                        ),
+
+                        
+                        ft.Container(height=210),  # Acts as flexible space
+                        ft.ResponsiveRow(
+                            [
+                                ft.Text(
+                                    f"{choice(quote_list)}",
+                                    size=15,
+                                    weight=ft.FontWeight.BOLD,
+                                    italic=True
+                                ),
+                                
+                                ft.ProgressBar(width=400,height=10, color="#0080ff", bgcolor="#eeeeee"),
+
+                            ],
+                            alignment=ft.MainAxisAlignment.CENTER,
+                            spacing=20,  # Adds space between the progress bar and the quote
+                        ),
+                    ],
+                    alignment=ft.MainAxisAlignment.CENTER,  
+                    spacing=20,  # Adds space between each item in the column
+                ),
+                alignment=ft.alignment.center,
+                padding=ft.padding.all(20),
             ),
-            alignment=ft.alignment.center,
-            padding=ft.padding.all(20),  
-        ),
         ],
         spacing=35,
+        alignment=ft.MainAxisAlignment.CENTER,  # Centers the content in the row
     )
-     
 
     page.add(loading_screen)
 
@@ -152,8 +181,8 @@ def main(page: ft.Page):
 
     def handle_nav_change(e):
         selected_index = e.control.selected_index
-        titles = ["Accueil", "Outils", "Communauté", "Librairie"]
-        routes = ["/", "/outil", "/communaute", "/librairie"]
+        titles = ["feed", "Outils", "Accueil", "Communauté", "Librairie"]
+        routes = ["/feed", "/outil", "/", "/communaute", "/librairie"]
 
         if 0 <= selected_index < len(titles):
             page.title = titles[selected_index]
@@ -163,11 +192,13 @@ def main(page: ft.Page):
     page.navigation_bar = ft.NavigationBar(
         adaptive=True,
         bgcolor="#0B162C",
+        selected_index=2,  # Set the default selected index to "Accueil"
         on_change=handle_nav_change,
         destinations=[
-            ft.NavigationBarDestination(label="Accueil", icon=ft.icons.HOME),
+            ft.NavigationBarDestination(label="Feed", icon=ft.icons.ALL_INCLUSIVE),
             ft.NavigationBarDestination(label="Outils", icon=ft.icons.EXPLORE),
-            ft.NavigationBarDestination(label="Communauté", icon=ft.icons.GROUP),
+            ft.NavigationBarDestination(label="Accueil", icon=ft.icons.HOME),
+            ft.NavigationBarDestination(label="Commu.", icon=ft.icons.GROUP),
             ft.NavigationBarDestination(label="Librairie", icon=ft.icons.BOOKMARK),
         ],
     )
@@ -180,7 +211,7 @@ def main(page: ft.Page):
         permission_container,  # Initially show the permission container
     )
 
-    page.update()
     page.go("/")
+    page.update()
 
 ft.app(target=main, assets_dir="assets")

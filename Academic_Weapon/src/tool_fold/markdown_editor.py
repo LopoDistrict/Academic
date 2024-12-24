@@ -1,6 +1,7 @@
 import flet as ft
 import sys 
 from . import file_manager
+from random import randint
 
 def markdown_editor(router):
     def update_preview(e):
@@ -30,6 +31,17 @@ def markdown_editor(router):
         e.page.snack_bar.open = True
         e.page.update()
         e.page.close(dlg_modal)
+        time.sleep(1)
+
+        value = randint(0,10)
+        old_xp = int(fs.read_given_line("assets/user_data/user_log.txt", 3))
+        fs.append_file(str(int(value) + int(old_xp)), 3, file_path)
+        e.page.snack_bar = ft.SnackBar(
+            ft.Text(f"Vous avez gagné: {value} xp")
+        )
+        e.page.snack_bar.open = True
+        e.page.update()
+
         
 
 

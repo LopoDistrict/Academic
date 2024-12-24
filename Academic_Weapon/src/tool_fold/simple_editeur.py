@@ -60,6 +60,15 @@ def simple_editeur(router):
             e.page.update()
             e.page.close(self.dlg_modal)
 
+            value = randint(0,10)
+            old_xp = int(fs.read_given_line("assets/user_data/user_log.txt", 3))
+            fs.append_file(str(int(value) + int(old_xp)), 3, file_path)
+            e.page.snack_bar = ft.SnackBar(
+                ft.Text(f"Vous avez gagné: {value} xp")
+            )
+            e.page.snack_bar.open = True
+            e.page.update()
+
         def handle_close(self, e):
             e.page.close(self.dlg_modal)
 

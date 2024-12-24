@@ -3,11 +3,7 @@ import datetime
 from . import file_manager
 
 
-
 def todo(router):
-
-
-
     class Task(ft.Column):
         def __init__(self, task_name, task_date, task_status_change, task_delete):
             super().__init__()
@@ -16,6 +12,7 @@ def todo(router):
             self.task_date = task_date
             self.task_status_change = task_status_change
             self.task_delete = task_delete
+            self.fs = file_manager.FileSystem()
             self.display_task = ft.Checkbox(
                 value=False, label=f"{self.task_name} • {self.task_date}", on_change=self.status_changed
             )
@@ -67,9 +64,6 @@ def todo(router):
             )
             self.controls = [self.display_view, self.edit_view]
 
-
-            
-
         def edit_clicked(self, e):
             self.edit_name.value = self.task_name
             self.edit_date.value = self.task_date
@@ -78,6 +72,12 @@ def todo(router):
             self.update()
 
         def save_clicked(self, e):
+            old_row = [self.task_name, self.task_date]
+            new_row = [(self.edit_name.value).replace('"', ""), (self.edit_date.value).replace('"', "")[:-1]]
+            l = self.fs.search_line_csv("assets/user_data/to_do.csv", old_row)
+            
+            self.fs.replace_csv_row("assets/user_data/to_do.csv", l, new_row)
+
             self.task_name = self.edit_name.value
             self.task_date = self.edit_date.value
             self.display_task.label = f"{self.task_name} • {self.task_date}"
@@ -90,59 +90,51 @@ def todo(router):
             self.task_status_change(self)
 
         def delete_clicked(self, e):
+            row_to_delete = [self.task_name, self.task_date]
+            l = self.fs.search_line_csv("assets/user_data/to_do.csv", row_to_delete)
+            print(row_to_delete)
+            print(f"line {l}")
+            self.fs.delete_row_csv("assets/user_data/to_do.csv", l)
+            
             self.task_delete(self)
-
-        
-
 
     class TodoApp(ft.Column):
         def __init__(self):
             super().__init__()
-
+            self.fs = file_manager.FileSystem()
             self.new_task = ft.TextField(
-                label="Nom de tâche", on_submit=self.add_clicked, expand=True,border=ft.InputBorder.UNDERLINE,max_length=25
+                label="Nom de tâche", on_submit=self.add_clicked, expand=True, border=ft.InputBorder.UNDERLINE, max_length=25
             )
-
             self.selected_date = None
             self.date_picker_button = ft.ElevatedButton(
                 "Choisir une Date",
                 icon=ft.icons.CALENDAR_MONTH,
                 on_click=self.show_date_picker,
-                
             )
-
             self.tasks = ft.Column()
 
-            self.filter = ft.Tabs(            
+            self.filter = ft.Tabs(
                 scrollable=False,
                 selected_index=0,
                 on_change=self.tabs_changed,
-                tabs=[ft.Tab(text="tâches")],            
+                tabs=[ft.Tab(text="tâches")],
             )
 
             self.items_left = ft.Text("0 tâches restantes")
-
             self.width = 600
             self.controls = [
-
-
                 ft.Row(
                     controls=[
-                        ft.Column(
-                            [],
-                            spacing=55,
-                        ),
+                        ft.Column([], spacing=55),
                         self.new_task,
                         ft.FloatingActionButton(
                             "Ajouter",
-                            icon=ft.icons.ADD, on_click=self.add_clicked, bgcolor="#3B556D", 
+                            icon=ft.icons.ADD, on_click=self.add_clicked, bgcolor="#3B556D",
                         ),
                     ],
                 ),
                 ft.Row(
-                    controls=[
-                        self.date_picker_button,
-                    ],
+                    controls=[self.date_picker_button],
                 ),
                 ft.Column(
                     spacing=25,
@@ -152,67 +144,56 @@ def todo(router):
                         ft.Row(
                             alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
                             vertical_alignment=ft.CrossAxisAlignment.CENTER,
-                            controls=[
-                                self.items_left,
-                            ],
+                            controls=[self.items_left],
                         ),
                     ],
                 ),
             ]
-        
-        
-        
+            self.get_saved()
+
         def get_saved(self):
             fs = file_manager.FileSystem()
-            tasks_saved = fs.matrix_csv("assets/user_data/to_do.csv")
-
-            for i in range(len(tasks_saved)):
-                temp = Task(tasks_saved[i][0],tasks_saved[i][1], self.task_status_change, self.task_delete)
-                self.tasks.controls.append(temp)
+            try:
+                tasks_saved = fs.matrix_csv("assets/user_data/to_do.csv")
+                for row in tasks_saved:
+                    if len(row) >= 2 and row[0] != "nom":
+                        task_name = row[0]
+                        task_date = row[1]
+                        temp_task = Task(task_name, task_date, self.task_status_change, self.task_delete)
+                        self.tasks.controls.append(temp_task)
                 self.update()
-            
+            except Exception as e:
+                print(f"Error reading saved tasks: {e}")
 
-
-
-                
         def show_date_picker(self, e):
             x = datetime.datetime.now()
-
-
             date_picker = ft.DatePicker(
-                first_date=datetime.datetime(year=x.year, month=1, day=1),                
-                last_date=datetime.datetime(year=x.year+1, month=12, day=31),
+                first_date=datetime.datetime(year=x.year, month=1, day=1),
+                last_date=datetime.datetime(year=x.year + 1, month=12, day=31),
                 on_change=self.date_changed,
                 on_dismiss=self.handle_dismissal,
             )
             self.page.overlay.append(date_picker)
-            date_picker.open = True  
-            self.page.update()  
-
+            date_picker.open = True
+            self.page.update()
 
         def date_changed(self, e):
             self.selected_date = e.control.value.strftime("%Y-%m-%d")
-            self.page.snack_bar = ft.SnackBar(
-                ft.Text(f"Date sélectionnée: {self.selected_date}")
-            )
+            self.page.snack_bar = ft.SnackBar(ft.Text(f"Date sélectionnée: {self.selected_date}"))
             self.page.snack_bar.open = True
             self.page.update()
 
         def handle_dismissal(self, e):
-            self.page.snack_bar = ft.SnackBar(
-                ft.Text("Sélection de la date rejetée.")
-            )
+            self.page.snack_bar = ft.SnackBar(ft.Text("Sélection de la date rejetée."))
             self.page.snack_bar.open = True
             self.page.update()
 
         def add_clicked(self, e):
             if self.new_task.value:
-                fs = file_manager.FileSystem()
-                value = [self.new_task.value,self.selected_date]
-                print(value)
-                fs.app_csv("assets/user_data/to_do.csv", value)
-
                 task_date = self.selected_date or "pas de Date"
+                value = [self.new_task.value, task_date]
+                self.fs.app_csv("assets/user_data/to_do.csv", value)
+
                 task = Task(self.new_task.value, task_date, self.task_status_change, self.task_delete)
                 self.tasks.controls.append(task)
                 self.new_task.value = ""
@@ -228,21 +209,5 @@ def todo(router):
 
         def tabs_changed(self, e):
             self.update()
-
-        def clear_clicked(self, e):
-            for task in self.tasks.controls[:]:
-                if task.completed:
-                    self.task_delete(task)
-
-        def before_update(self):
-            status = self.filter.tabs[self.filter.selected_index].text
-            count = 0
-            for task in self.tasks.controls:
-                task.visible = status == "tâches" or (status == "Completed" and task.completed)
-                if not task.completed:
-                    count += 1
-            self.items_left.value = f"{count} tâches restantes"
-    
-        self.get_saved()
 
     return TodoApp()

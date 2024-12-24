@@ -167,11 +167,14 @@ def pomodoro(router):
             anc_val = int(fs.read_given_line("assets/user_data/user_log.txt", 1))       
             fs.append_file(str(int(value) + int(anc_val)), 1, file_path)
 
-            page.snack_bar = ft.SnackBar(
-                ft.Text(f"Date sélectionnée: {self.selected_date}")
+            old_xp = int(fs.read_given_line("assets/user_data/user_log.txt", 3))
+            fs.append_file(str(int(value) + int(old_xp)), 3, file_path)
+
+            self.page.snack_bar = ft.SnackBar(
+                ft.Text(f"Vous avez gagné: {value} xp")
             )
-            page.snack_bar.open = True
-            page.update()
+            self.page.snack_bar.open = True
+            self.page.update()
                 
 
         def run_timer(self):
