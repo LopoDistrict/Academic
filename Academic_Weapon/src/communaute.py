@@ -5,23 +5,27 @@ import time
 import os.path
 import mysql.connector
 import ftplib
+from tool_fold import file_manager
 
 
 class sql_data:
     def __init__(self):
-        self.index = 0
+        self.index = 1
         self.extension_file = {
             ".pdf": ft.icons.PICTURE_AS_PDF,
             ".jpg.jpeg.png.webp": ft.icons.IMAGE,
             ".docx.txt.doc.odt": ft.icons.FOLDER_COPY_ROUNDED,
         }
         self.page_height = 1000
+        self.like_icon = ft.Icon(name=ft.Icons.FAVORITE, color="#dcdcdc", size=40)
 
         self.char = (
             'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's',
             't', 'u', 'v', 'w', 'x', 'y', 'z', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O',
             'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'
         )
+        self.temp_file_id = ""
+
 
     def uniq_id(self):
         return ''.join(random.choice(self.char) for _ in range(10))
@@ -54,21 +58,21 @@ class sql_data:
 
             mycursor = mydb.cursor()
 
-            # Fetch the last document number
-            mycursor.execute("SELECT num_document FROM document ORDER BY num_document DESC LIMIT 1;")
+            mycursor.execute("SELECT num_document FROM document ORDER BY num_document ASC LIMIT 1;")
             myresult = mycursor.fetchone()
             last_num_document = myresult[0] if myresult else 0
 
-            # Generate a new unique document number
             new_num_document = last_num_document + 1
 
-            # Insert new document data into the database
             sql = """
-            INSERT INTO document (id_document, nom_document, description_document, taille_document, date_document, id_user, num_document)
-            VALUES (%s, %s, %s, %s, SYSDATE(), %s, %s)
+            INSERT INTO document (id_document, nom_document, description_document, taille_document, date_document, id_user, num_document, extension_file)
+            VALUES (%s, %s, %s, %s, SYSDATE(), %s, %s, %s)
             """
-            user_id = "test_user"  # Replace with actual user ID once authentication is implemented
-            values = (self.uniq_id(), title, description, "15MB", user_id, new_num_document)
+            user_id = "test_user" 
+            self.temp_file_id = self.uniq_id()
+
+            print(f"file size {os.path.getsize(file_name)}")
+            values = (self.temp_file_id, title, description, os.path.getsize(file_name), user_id, new_num_document, file_name.split(".")[-1])
             mycursor.execute(sql, values)
 
             mydb.commit()
@@ -97,86 +101,117 @@ class sql_data:
 
             mycursor = mydb.cursor()
 
-            # Use parameterized query
             sql = "SELECT * FROM document WHERE num_document = %s ORDER BY date_document ASC"
             print(self.index)
             mycursor.execute(sql, (self.index,))
 
-            # Fetch results
             myresult = mycursor.fetchall()
             return myresult
 
         except mysql.connector.Error as err:
             print(f"Database error: {err}")
-            return ()  # Return an empty tuple in case of an error
-
+            return ()  
         finally:
             if mycursor:
                 mycursor.close()
             if mydb:
                 mydb.close()
 
-    #mettre des try et except
+
 
     def upload_document_ftp(self, path, nom):
-        ftp_server = ftplib.FTP("ftpupload.net", "if0_37857418", "lordnashou123")
+        ftp_server = ftplib.FTP("ftpupload.net", "if0_37999130", "KTihAaTOhwN")
         ftp_server.encoding = "utf-8"
-        filename = nom
+        
+        #on change le path
+        path = path.replace(nom, self.temp_file_id + "." + nom.split(".")[-1])
+
+        #on le renomme avec l'id
+        os.rename(nom, self.temp_file_id + "." + nom.split(".")[-1])
+        filename = self.temp_file_id + "." + nom.split(".")[-1]
+
+        print(f"path: {path}")
+        print(f"nom: {filename}")
+
         ftp_server.cwd('htdocs')
         ftp_server.cwd('com_docs')
-        
+
         with open(path, "rb") as file:
             ftp_server.storbinary(f"STOR {filename}", file)
 
-        print()
         ftp_server.dir()
         ftp_server.quit()
-        #upload_document_db(os.path.getsize(path))
-    
 
-    def add_new_label(self, e, etiquette_data):  # Pass etiquette_data
+    
+    def save_like(self, e, nom, desc, lien):
+        fs = file_manager.FileSystem()
+        if self.like_icon.color == "#dcdcdc":
+            #pas encore liker
+            self.like_icon.color = "#db025e"            
+            fs.app_csv("assets/user_data/liked.csv", [fs.uniq_id(), nom, desc, lien])
+            e.page.update()
+        else:
+            self.like_icon.color = "#dcdcdc"
+            ligne = fs.search_line_csv("assets/user_data/liked.csv", lien)
+            fs.delete_row_csv("assets/user_data/liked.csv", ligne+1)
+            e.page.update()
+
+    def add_new_label(self, e, etiquette_data):
         for i in range(5):
             try:
                 value_retrieved = self.retrieve_data_server()  # Retrieve data
                 self.index += 1
+                
                 if not value_retrieved:
                     print("No more data to retrieve.")
-                    return  # Stop if no data is retrieved
+                    self.index -= 1
+                else:
+                    print(value_retrieved)
+                    for i in range(len(value_retrieved[0])):
+                        print(str(i) + " ", end=" ")
+                        print(str(value_retrieved[0][i]))
 
-                taille = 0
-                print(value_retrieved)
+                    
 
-                nv_label = ft.Container(
-                    content=ft.Row(
-                        controls=[
-                            ft.Column(
-                                controls=[
-                                    ft.Text(value_retrieved[0][1], size=18, weight=ft.FontWeight.BOLD),
-                                    ft.Text(value_retrieved[0][2], size=15),
-                                    ft.Text(
-                                        f"{taille} • {value_retrieved[0][1].split('.')[0][-1]}",
-                                        size=12,
-                                        color="#d2dbe3",
-                                    ),
-                                    ft.Text(f"Par {value_retrieved[0][5]}", size=11, color="#5af979"),
-                                ]
-                            ),
-                            ft.Icon(name=self.extension_file.get(value_retrieved[0][1].split('.')[0][-1]), size=60),
-                        ],
-                        alignment=ft.MainAxisAlignment.START,
-                    ),
-                    padding=15,
-                    bgcolor="#3B556D",
-                    border_radius=7,
-                    on_click=lambda e: print("Clickable without Ink clicked!"),
-                )
+                    nv_label = ft.Container(
+                        content=ft.Row(
+                            [
+                                ft.Column(
+                                    controls=[
+                                        ft.Text(value_retrieved[0][1], size=18, weight=ft.FontWeight.BOLD),
+                                        ft.Text(value_retrieved[0][2], size=15),
+                                        ft.Text(
+                                            f"{value_retrieved[0][3]}B • {value_retrieved[0][7]}",
+                                            size=12,
+                                            color="#d2dbe3",
+                                        ),
+                                        ft.Text(f"Par {value_retrieved[0][5]}", size=11, color="#5af979"),
+                                    ]
+                                ),
+                                ft.Container(
+                                    self.like_icon,
+                                    on_click=lambda e, title=value_retrieved[0][1], desc=value_retrieved[0][2], url=f"http://academic-weapon.rf.gd/com_docs/{value_retrieved[0][0]}.{value_retrieved[0][7]}": 
+                                        self.save_like(e, title, desc, url),
+                                ),
+                            ],
+                            alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                        ),
+                        padding=15,
+                        border_radius=7,
+                        on_click=lambda e: print("Clickable without Ink clicked!"),
+                    )
 
-                etiquette_data.controls.append(nv_label)
-                e.page.update()
+                    if hasattr(etiquette_data, "controls"):
+                        etiquette_data.controls.append(nv_label)
+                        etiquette_data.controls.append(ft.Divider(height=10, color="white", thickness=3))
+                        e.page.update()
+                    else:
+                        print("Error: Invalid etiquette_data structure.")
 
-            except IndexError:
-                print("Error: Malformed data or Index out of bounds.")
+            except Exception as ex:
+                print(f"An error occurred: {ex}")
                 return
+
 
 
 
@@ -203,16 +238,31 @@ def communaute(router_data: Union[str, None] = None):
         if 'path' not in selected_file:
             print("No file selected!")
             return
-        try:
-            etiquette.upload_document_ftp(selected_file['path'], selected_file['name'])
-            print("File uploaded to FTP server.")
+        try:            
 
             etiquette.upload_document_db(titre.value, description.value, selected_file['name'])
             print("File data uploaded to database.")
+
+            etiquette.upload_document_ftp(selected_file['path'], selected_file['name'])
+            print("File uploaded to FTP server.")
+
             e.page.close(upload_alert)
+
+            e.page.snack_bar = ft.SnackBar(
+                ft.Text(f"Le fichier a bien été uploadé")
+            )
+            e.page.snack_bar.open = True
+            self.update()
+
 
         except Exception as ex:
             print(f"Error during upload: {ex}")
+
+            e.page.snack_bar = ft.SnackBar(
+                ft.Text(f"Il y a eu une erreur dans l'upload, retentez plus tard")
+            )
+            e.page.snack_bar.open = True
+            self.update()
 
     # Initialize the file picker<
     pick_files_dialog = ft.FilePicker(on_result=on_file_pick_result)
@@ -261,6 +311,10 @@ def communaute(router_data: Union[str, None] = None):
         ],
     )
 
+
+    #like_icon = ft.Icon(name=ft.Icons.FAVORITE, color="#dcdcdc", size=45)
+
+    
     file_pick_button = ft.FilledButton(
         text="Choisir un fichier à upload",
         icon=ft.icons.FILE_PRESENT,
@@ -280,6 +334,20 @@ def communaute(router_data: Union[str, None] = None):
 
     def handle_close(e):
         e.page.close(upload_alert)
+
+    """
+    def save_like(e, nom, desc, lien):
+        fs = file_manager.FileSystem()
+        if self.like_icon.color == "#dcdcdc":
+            #pas encore liker
+            like_icon.color = "#db025e"            
+            fs.app_csv("document/liked.csv", [fs.uniq_id(), nom, desc, lien])
+        else:
+            like_icon.color = "#dcdcdc"
+            ligne = fs.search_line_csv("document/liked.csv", lien)
+            delete_row_csv("document/liked.csv", ligne)
+            #methode a modif pour chercher autre que [0]"""
+
 
     # Define the alert dialog
     upload_alert = ft.AlertDialog(
@@ -330,7 +398,9 @@ def communaute(router_data: Union[str, None] = None):
         spacing=10,
         scroll=ft.ScrollMode.AUTO,
         expand=True,
+        
     )
+    
     # Define the page content
     content = ft.Container(
         content=ft.Column(
@@ -360,12 +430,14 @@ def communaute(router_data: Union[str, None] = None):
                     ),
                     padding=15,
                 ),
+                ft.Divider(height=10, color="white", thickness=3),
                 etiquette_data,
+                
                 ft.Row(
                     controls=[
                         ft.FilledButton(
                         text="Chargez plus de contenu",
-                        on_click=lambda e: etiquette.add_new_label(e, etiquette_data),  # Pass etiquette_data
+                        on_click=lambda e: etiquette.add_new_label(e, etiquette_data),
                         width=220,
                         height=45,
                         style=ft.ButtonStyle(

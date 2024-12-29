@@ -163,6 +163,7 @@ def main(page: ft.Page):
     print(check_debbug())
     loading_screen.controls.clear()
     page.update()
+    
 
     """
     permission_container.controls.append(

@@ -9,7 +9,11 @@ authors = [
 ]
 dependencies = [
   "flet==0.25.2",
-  "mysql-connector-python==9.1.0"
+  "mysql-connector-python==9.1.0",
+  "huggingface_hub==0.27.0",
+  "pdf2image==1.17.0",
+  "pypdf==5.1.0"
+  
 ]
 
 

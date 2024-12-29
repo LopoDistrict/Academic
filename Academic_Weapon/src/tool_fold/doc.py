@@ -2,7 +2,6 @@ import flet as ft
 import pdf2image
 from io import BytesIO
 from PIL import Image as image
-import numpy as np
 import base64
 import pypdf
 
@@ -51,9 +50,8 @@ def doc(router):
                 e.page.update()
                 return
 
-            # Convert the first page to a base64 image
-            arr = np.asarray(viewer[0])
-            pil_img = image.fromarray(arr)
+            # Convert the image to base64
+            pil_img = viewer[0]
             buff = BytesIO()
             pil_img.save(buff, format="JPEG")
             pic = base64.b64encode(buff.getvalue()).decode("utf-8")

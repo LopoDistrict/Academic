@@ -38,15 +38,15 @@ def flash_cards(router):
                         alignment=ft.alignment.center,
                         bgcolor=couleur_fond,
                         expand=True,
-                        visible=True,  # Initially the question is visible
+                        visible=True,  
                     ),
                     ft.Container(
                         ft.Text(response.value, size=20, weight=ft.FontWeight.BOLD),
                         alignment=ft.alignment.center,
                         bgcolor=couleur_fond,
                         expand=True,
-                        visible=False,  # Initially the response is hidden
-                    ),
+                        visible=False, 
+                    ), 
                 ],
                 alignment=ft.MainAxisAlignment.CENTER,
             ),
@@ -55,7 +55,7 @@ def flash_cards(router):
             bgcolor="#FFFFFF", #mettre un color picker
             border_radius=10,
             on_click=flip_card,
-            padding=10,
+            padding=15,
             
         )
         response.value = ""

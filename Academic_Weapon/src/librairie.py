@@ -26,7 +26,6 @@ def librairie(router_data: Union[Router, str, None] = None):
 
         print(f"Document path: {doc_path}")
         
-        # Walk through the directory to find matching files
         for root, dirs, files in os.walk(doc_path):
             for filename in files:
                 if e.data in filename and e.data != "":
@@ -63,7 +62,7 @@ def librairie(router_data: Union[Router, str, None] = None):
             text=doc[1],  
             width=300,
             height=40,
-            on_click=lambda e: send_data(e, "/document/" + doc[0]),
+            on_click=lambda e, fn=doc[1]: send_data(e, extension_route.get(fn.split('.')[-1], "/librairie")),
             style=ft.ButtonStyle(
                 shape=ft.RoundedRectangleBorder(radius=10),
                 color="#FFFFFF",
@@ -95,7 +94,7 @@ def librairie(router_data: Union[Router, str, None] = None):
                                 text=f"{fs.get_last_modified()}",
                                 width=300,
                                 height=40,
-                                on_click=lambda e: send_data(e, "/librairie"),
+                                on_click=lambda e, fn=fs.get_last_modified(): send_data(e, extension_route.get(fn.split('.')[-1], "/librairie")),
                                 style=ft.ButtonStyle(
                                     shape=ft.RoundedRectangleBorder(radius=10),
                                     color="#FFFFFF",

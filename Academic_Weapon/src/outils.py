@@ -30,7 +30,7 @@ def outils(router_data: Union[Router, str, None] = None):
                             style=ft.ButtonStyle(
                                 shape=ft.RoundedRectangleBorder(radius=10),
                                  color="#FFFFFF",
-                                bgcolor="#3B556D", 
+                                bgcolor="#3974ab", 
                                 overlay_color="#0080ff", 
 
                             ),
@@ -44,20 +44,20 @@ def outils(router_data: Union[Router, str, None] = None):
                             style=ft.ButtonStyle(
                                 shape=ft.RoundedRectangleBorder(radius=10),
                                 color="#FFFFFF",
-                                bgcolor="#3B556D",  
+                                bgcolor="#3974ab",  
                                 overlay_color="#0080ff",
                             ),
                         ),
                         ft.ElevatedButton(
                             icon=ft.icons.EDIT_NOTE,
-                            text="Simple Éditeur de note",
+                            text=ft.Text("simple editeur", size=25,weight=ft.FontWeight.BOLD).value,
                             width=60,
                             height=80,
                             on_click=lambda e: send_data(e, "/simple_editeur"),
                             style=ft.ButtonStyle(
                                 shape=ft.RoundedRectangleBorder(radius=10),
                                  color="#FFFFFF",
-                                bgcolor="#3B556D",
+                                bgcolor="#3974ab",
                                 overlay_color="#0080ff", 
                                  
                             ),
@@ -71,7 +71,7 @@ def outils(router_data: Union[Router, str, None] = None):
                             style=ft.ButtonStyle(
                                 shape=ft.RoundedRectangleBorder(radius=10),
                                 color="#FFFFFF",
-                                bgcolor="#3B556D",  
+                                bgcolor="#3974ab",  
                                 overlay_color="#0080ff",
                             ),
                             
@@ -85,7 +85,7 @@ def outils(router_data: Union[Router, str, None] = None):
                             style=ft.ButtonStyle(
                                 shape=ft.RoundedRectangleBorder(radius=10),
                                 color="#FFFFFF",
-                                bgcolor="#3B556D",  
+                                bgcolor="#3974ab",  
                                 overlay_color="#0080ff",
                             ),
                             
@@ -99,10 +99,38 @@ def outils(router_data: Union[Router, str, None] = None):
                             style=ft.ButtonStyle(
                                 shape=ft.RoundedRectangleBorder(radius=10),
                                 color="#FFFFFF",
-                                bgcolor="#3B556D",  
+                                bgcolor="#3974ab",  
                                 overlay_color="#0080ff",
                             ),
                             
+                        ),
+
+                        ft.FilledButton(
+                            icon=ft.icons.DOCUMENT_SCANNER,
+                            text="Visionneur de document",
+                            width=60,
+                            height=80,
+                            
+                            on_click=lambda e: send_data(e, "/doc"),
+                            style=ft.ButtonStyle(
+                                shape=ft.RoundedRectangleBorder(radius=10),
+                                color="#FFFFFF",
+                                bgcolor="#3974ab", 
+                                overlay_color="#0080ff",                               
+                            ),
+                        ),
+                        ft.FilledButton(
+                            icon=ft.icons.DRAW,
+                            text="Notes en dessin[à venir]",
+                            width=60,
+                            height=80,
+                            on_click=send_data,
+                            style=ft.ButtonStyle(
+                                shape=ft.RoundedRectangleBorder(radius=10),
+                                 color="#FFFFFF",
+                                bgcolor="#253543",
+                                
+                            ),
                         ),
                         ft.ElevatedButton(
                             icon=ft.icons.MULTITRACK_AUDIO_SHARP,
@@ -115,33 +143,6 @@ def outils(router_data: Union[Router, str, None] = None):
                                 shape=ft.RoundedRectangleBorder(radius=10),
                                 color="#FFFFFF",
                                 bgcolor="#253543",                              
-                            ),
-                        ),
-                        ft.FilledButton(
-                            icon=ft.icons.DOCUMENT_SCANNER,
-                            text="Visionneur de document",
-                            width=60,
-                            height=80,
-                            
-                            on_click=lambda e: send_data(e, "/doc"),
-                            style=ft.ButtonStyle(
-                                shape=ft.RoundedRectangleBorder(radius=10),
-                                color="#FFFFFF",
-                                bgcolor="#3B556D", 
-                                overlay_color="#0080ff",                               
-                            ),
-                        ),
-                        ft.FilledButton(
-                            icon=ft.icons.DRAW,
-                            text="Notes en dessin",
-                            width=60,
-                            height=80,
-                            on_click=send_data,
-                            style=ft.ButtonStyle(
-                                shape=ft.RoundedRectangleBorder(radius=10),
-                                 color="#FFFFFF",
-                                bgcolor="#3B556D",
-                                overlay_color="#0080ff",  
                             ),
                         ),                
                     ],

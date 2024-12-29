@@ -75,8 +75,10 @@ def todo(router):
             old_row = [self.task_name, self.task_date]
             new_row = [(self.edit_name.value).replace('"', ""), (self.edit_date.value).replace('"', "")[:-1]]
             l = self.fs.search_line_csv("assets/user_data/to_do.csv", old_row)
+            print(old_row)
+            print(new_row)
             
-            self.fs.replace_csv_row("assets/user_data/to_do.csv", l, new_row)
+            self.fs.replace_csv_row("assets/user_data/to_do.csv", l+1, new_row)
 
             self.task_name = self.edit_name.value
             self.task_date = self.edit_date.value
@@ -94,7 +96,7 @@ def todo(router):
             l = self.fs.search_line_csv("assets/user_data/to_do.csv", row_to_delete)
             print(row_to_delete)
             print(f"line {l}")
-            self.fs.delete_row_csv("assets/user_data/to_do.csv", l)
+            self.fs.delete_row_csv("assets/user_data/to_do.csv", l+1)
             
             self.task_delete(self)
 

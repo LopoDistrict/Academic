@@ -32,10 +32,6 @@ class FileSystem:
 
 
     def get_external_storage_directory(self) -> Path:
-        """
-        Get the external storage directory for Android or fallback to current directory.
-        For Android, we check common environment variables.
-        """
         if("ANDROID_BOOTLOGO" in os.environ):
             storage_dir = ""
             return Path(storage_dir)
@@ -47,39 +43,41 @@ class FileSystem:
 
     
     def get_file_path(self, filename: str) -> Path:
-        """Returns the full path of a file."""
         if("ANDROID_BOOTLOGO" in os.environ):            
             return self.base_path / filename
         else:
             print(f"base path {self.base_path / ("src/" + filename)}")
             return self.base_path / ("src/" + filename)
 
+    def is_empty(self, filename) -> bool:
+        file_path = self.get_file_path(filename)
+        with open(file_path, 'r') as file_obj:
+            first_char = file_obj.read(1)
+            if not first_char:
+                return True
+            return False
+
 
     def write_to_file(self, filename: str, content: str) -> str:
-        """Writes content to a file and returns the file path."""
         file_path = self.get_file_path(filename)
-        with open(file_path, "w") as file:
+        with open(file_path, "w", encoding='utf-8') as file:
             file.write(content)
         return str(file_path)
 
 
     def read_from_file(self, filename: str) -> str:
-        """Reads and returns content from a file, or an error message."""
         file_path = self.get_file_path(filename)
-        if file_path.exists():
-            with open(file_path, "r") as file:
-                return file.read()
-        else:
-            return f"Error: {filename} not found."
+        with open(file_path, "r") as file:
+            print(file_path)
+            return file.read()
 
     def file_exists(self, filename: str) -> bool:
-        """Checks if a file exists."""
         return self.get_file_path(filename).exists()
 
 
     def read_given_line(self, filename, line):
         file_path = self.get_file_path(filename)
-        with open(file_path, "r") as file:
+        with open(file_path, "r", encoding="utf-8") as file:
             return file.readlines()[line]
 
     def get_last_modified(self):
@@ -106,19 +104,19 @@ class FileSystem:
 
     def append_file(self, value, line, path):    
         file_path = self.get_file_path(path)        
-        with open(file_path, 'r') as file:
+        with open(file_path, 'r', encoding="utf-8") as file:
             lines = file.readlines()
 
         lines[line] = str(value) + '\n'
 
-        with open(file_path, "w") as file:
+        with open(file_path, "w", encoding="utf-8") as file:
             file.writelines(lines)
 
 
     def matrix_csv(self, path):
         main = []
         file_path = self.get_file_path(path)
-        with open(file_path, 'r') as file:
+        with open(file_path, 'r', encoding="utf-8") as file:
             for line in file:
                 if "id," not in line:                
                     main.append(line.split(','))
@@ -126,7 +124,7 @@ class FileSystem:
 
     def rl_csv(self, path, id):
         file_path = self.get_file_path(path)
-        with open(file_path, 'r') as file:
+        with open(file_path, 'r', encoding="utf-8") as file:
             for line in file:
                 if id in line:
                     return line.split(',')[id]
@@ -134,7 +132,7 @@ class FileSystem:
 
     def app_csv(self, path, value):
         file_path = self.get_file_path(path)
-        with open(file_path, 'a', newline='') as fileTemp:  
+        with open(file_path, 'a', newline='', encoding="utf-8") as fileTemp:  
             csvwriter = csv.writer(fileTemp)
             csvwriter.writerow(value)
 
@@ -143,47 +141,55 @@ class FileSystem:
 
     def search_line_csv(self, path, value):
         file_path = self.get_file_path(path)
-        with open(file_path, mode ='r') as file_csv:
-            i = 0
-            csv_file = csv.reader(file_csv)
-            for lines in csv_file:
-                if lines[0] == value[0] :
-                    
-                    return i
-                else:
-                    i+=1
-        return -1
+        try:
+            with open(file_path, mode='r', encoding='utf-8') as file_csv:
+                csv_file = csv.reader(file_csv)
+                for i, lines in enumerate(csv_file):
+                    if len(lines) > 0 and lines[0] == value[0] or value in lines: 
+                        #horrible mais peut fonctionner
+                        return i
+                return -1 
+        except FileNotFoundError:
+            raise FileNotFoundError(f"File not found: {file_path}")
+        except Exception as e:
+            raise RuntimeError(f"Error reading file: {file_path}") from e
 
     def delete_row_csv(self, path, line_number):
-        input_file = self.get_file_path(path)
-        if line_number == 1:
-            line_number +=1
-        with open(input_file, mode='r', newline='', encoding='utf-8') as infile:
-            reader = list(csv.reader(infile))
+        file_path = self.get_file_path(path)
+        try:
+            with open(file_path, mode='r', newline='', encoding='utf-8') as infile:
+                reader = list(csv.reader(infile))
 
-            if line_number > len(reader):
-                raise IndexError("line_number exceeds the number of rows in the file.")
+                if line_number < 1 or line_number > len(reader):
+                    raise IndexError(f"line_number {line_number} is out of bounds for the file with {len(reader)} rows.")
+                rows_to_keep = reader[:line_number - 1] + reader[line_number:]
 
-            # Remove the specified line (1-based index)
-            rows_to_keep = reader[:line_number - 1] + reader[line_number:]
+            with open(file_path, mode='w', newline='', encoding='utf-8') as outfile:
+                writer = csv.writer(outfile)
+                writer.writerows(rows_to_keep)
 
-        with open(input_file, mode='w', newline='', encoding='utf-8') as outfile:
-            writer = csv.writer(outfile)
-            writer.writerows(rows_to_keep)
-
+        except FileNotFoundError:
+            raise FileNotFoundError(f"File not found: {file_path}")
+        except Exception as e:
+            raise RuntimeError(f"Error processing file: {file_path}") from e
 
     def replace_csv_row(self, path, line_number, new_row):
         file_path = self.get_file_path(path)
+        try:
+            with open(file_path, mode='r', newline='', encoding='utf-8') as infile:
+                reader = list(csv.reader(infile))
 
-        #if line_number == 1:
-        line_number +=1
+                if line_number < 1 or line_number > len(reader):
+                    raise IndexError(f"line_number {line_number} is out of bounds for the file with {len(reader)} rows.")
+                
+                reader[line_number - 1] = new_row
 
-        with open(file_path, mode='r', newline='', encoding='utf-8') as infile:
-            reader = list(csv.reader(infile))
+            with open(file_path, mode='w', newline='', encoding='utf-8') as outfile:
+                writer = csv.writer(outfile)
+                writer.writerows(reader)
 
-            reader[line_number - 1] = new_row
-
-        with open(file_path, mode='w', newline='', encoding='utf-8') as outfile:
-            writer = csv.writer(outfile)
-            writer.writerows(reader)
+        except FileNotFoundError:
+            raise FileNotFoundError(f"File not found: {file_path}")
+        except Exception as e:
+            raise RuntimeError(f"Error processing file: {file_path}") from e
 
