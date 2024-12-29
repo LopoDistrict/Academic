@@ -1,70 +1,95 @@
 import flet as ft
 from . import file_manager
 from random import choice, randint
-from . import file_manager
+import csv
 
 def flash_cards(router):
-    def add_new_card(e):
+    def load_flash_cards():
+        """Load flash cards from the CSV file and display them."""
         fs = file_manager.FileSystem()
-        old_xp = fs.read_given_line('assets/user_data/user_log.txt', 3)
-        fs.append_file(randint(8,13), 3, 'assets/user_data/user_log.txt') #on lui ajoute de l'xp
+        try:
+            saved = fs.matrix_csv("assets/user_data/flash_card.csv")
+            for i in range(len(saved)):
+                create_card(saved[i][1], saved[i][2], saved[i][0], False)
+        except FileNotFoundError:
+            pass  # If file doesn't exist, no cards to load
 
-        fs.app_csv("assets/user_data/flash_card.csv", [fs.uniq_id(), question.value, response.value])
+    def save_flash_card_to_csv(card_id, question_text, response_text):
+        """Save a new flash card to the CSV file."""
+        fs = file_manager.FileSystem()
+        fs.app_csv("assets/user_data/flash_card.csv", [card_id, question_text, response_text])
 
+    def delete_flash_card_from_csv(card_id):
+        """Delete a flash card from the CSV file."""
+        fs = file_manager.FileSystem()
+        data = fs.read_csv("assets/user_data/flash_card.csv")
+        data = [row for row in data if row[0] != card_id]
+        fs.del_content("assets/user_data/flash_card.csv")
+        for i in range(len(data)):
+            fs.app_csv("assets/user_data/flash_card.csv", data[i])
+
+    def create_card(question_text, response_text, flag, card_id=None):
+        """Create a new flash card and add it to the page."""
         def get_random_hex_color():
             return '#' + ''.join([choice('0123456789ABCDEF') for _ in range(6)])
 
         couleur_fond = get_random_hex_color()
-        """
-        if color_choice.value == "Rouge":
-            couleur_fond = "#ff0000"
-        elif color_choice.value == "Vert":
-            couleur_fond = "#17e302"
-        elif color_choice.value == "Bleu":
-            couleur_fond = "#0061ff"
-            """
 
         def flip_card(t):
-            stack = card.content  
+            stack = card.content
             stack.controls[0].visible = not stack.controls[0].visible
             stack.controls[1].visible = not stack.controls[1].visible
             stack.update()
 
+        def delete_card(e):
+            delete_flash_card_from_csv(card_id)
+            cards_column.controls.remove(card)
+            e.page.update()
+
+        card_id = card_id or file_manager.FileSystem().uniq_id()
+        print(f"card_id: {card_id}")
         card = ft.Container(
-            content=ft.ResponsiveRow(
+            content=ft.Column(
                 [
                     ft.Container(
-                        ft.Text(question.value, size=20, weight=ft.FontWeight.BOLD),
+                        ft.Text(question_text, size=20, weight=ft.FontWeight.BOLD),
                         alignment=ft.alignment.center,
                         bgcolor=couleur_fond,
                         expand=True,
-                        visible=True,  
+                        visible=True,
                     ),
                     ft.Container(
-                        ft.Text(response.value, size=20, weight=ft.FontWeight.BOLD),
+                        ft.Text(response_text, size=20, weight=ft.FontWeight.BOLD),
                         alignment=ft.alignment.center,
                         bgcolor=couleur_fond,
                         expand=True,
-                        visible=False, 
-                    ), 
+                        visible=False,
+                    ),
+                    ft.IconButton(icon=ft.icons.DELETE, on_click=delete_card, icon_color="#FFFFFF"),
                 ],
+                
                 alignment=ft.MainAxisAlignment.CENTER,
             ),
+            bgcolor=couleur_fond,
             width=500,
             height=200,
-            bgcolor="#FFFFFF", #mettre un color picker
             border_radius=10,
             on_click=flip_card,
             padding=15,
-            
         )
+
+        cards_column.controls.append(card)
+        if flag == True:
+            save_flash_card_to_csv(card_id, question_text, response_text)
+
+    def add_new_card(e):
+        fs = file_manager.FileSystem()
+        fs.append_file(randint(8, 13), 3, 'assets/user_data/user_log.txt')  # Add XP
+        create_card(question.value, response.value, True)
         response.value = ""
         question.value = ""
-        cards_column.controls.append(card)
         e.page.close(dlg_modal)
         e.page.update()
-
-
 
     def handle_close(e):
         e.page.close(dlg_modal)
@@ -89,17 +114,6 @@ def flash_cards(router):
         max_lines=4,
     )
 
-    color_choice = ft.Dropdown(
-                        width=225,
-                        hint_text="Entrez une couleur",
-                        options=[
-                            ft.dropdown.Option("Rouge"),
-                            ft.dropdown.Option("Vert"),
-                            ft.dropdown.Option("Bleu"),
-                            ft.dropdown.Option("Random"),
-                        ],
-                    ),
-
     dlg_modal = ft.AlertDialog(
         title=ft.Text("Nouvelle Carte"),
         content=ft.Column(
@@ -118,7 +132,6 @@ def flash_cards(router):
                 alignment=ft.MainAxisAlignment.END,
             )
         ],
-        
     )
 
     # Add and save buttons
@@ -128,15 +141,12 @@ def flash_cards(router):
         on_click=lambda e: e.page.open(dlg_modal),
         height=45,
         width=200,
-        style=ft.ButtonStyle( 
-        color="#FFFFFF",
+        style=ft.ButtonStyle(
+            color="#FFFFFF",
             overlay_color="#0080ff",
             shape=ft.RoundedRectangleBorder(radius=7),
         ),
     )
-    
-
-
 
     # Column to hold the cards
     cards_column = ft.Column(
@@ -144,6 +154,9 @@ def flash_cards(router):
         scroll=ft.ScrollMode.AUTO,
         expand=True,
     )
+
+    # Load existing flashcards from CSV
+    load_flash_cards()
 
     # Main layout
     col = ft.Column(
@@ -153,7 +166,6 @@ def flash_cards(router):
                 spacing=10,
                 alignment=ft.MainAxisAlignment.CENTER,
             ),
-            
             ft.Divider(height=5, color="white"),
             cards_column,
         ],

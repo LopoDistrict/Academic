@@ -51,7 +51,7 @@ def accueil(router_data: Union[Router, str, None] = None):
     def get_level(e=None):
         fs = file_manager.FileSystem()
         exp = int(fs.read_given_line("assets/user_data/user_log.txt", 3))
-        exp_value = (0, 15, 35, 55, 75, 100, 250, 310, 480, 560, 700, 820, 1000)
+        exp_value = (0, 15, 35, 55, 75, 100, 250, 310, 480, 560, 700, 820, 1000, 1780, 2100, 2690, 3100, 4850, 6013)
         for i in range(len(exp_value)):
             if exp >= exp_value[i]:
                 if i + 1 < len(exp_value) and exp >= exp_value[i + 1]:
@@ -78,6 +78,25 @@ def accueil(router_data: Union[Router, str, None] = None):
                     ),
                     ft.ElevatedButton(
                         "Fermer", on_click=lambda e: e.page.close(streak_bottom)
+                    ),
+                ],
+            ),
+        ),
+    )
+
+    work_streak = ft.BottomSheet(
+        dismissible=True,
+        content=ft.Container(
+            padding=50,
+            content=ft.Column(
+                tight=True,
+                controls=[
+                    ft.Text(
+                        "Le work streak vous pousse à la régularité et à la discipline dans votre Travail. Chaque où vous vous connectez de suite vous obtenez de l'expérience et vous éliminez votre procratination. ",
+                        size=15,
+                    ),
+                    ft.ElevatedButton(
+                        "Fermer", on_click=lambda e: e.page.close(work_streak)
                     ),
                 ],
             ),
@@ -111,17 +130,39 @@ def accueil(router_data: Union[Router, str, None] = None):
                                 name=ft.icons.LOCAL_FIRE_DEPARTMENT,
                                 color="#e50000",
                                 size=35,
-                            ),
+                            ),                            
                             ft.Text(f"{val_temp}", size=19, weight=ft.FontWeight.BOLD),
+                            work_streak,
                         ],
                         spacing=20,
                         vertical_alignment=ft.CrossAxisAlignment.CENTER,
                     ),
+                    on_click=lambda e: e.page.open(work_streak),
                     height=60,
                     bgcolor="#0080ff",
                     padding=ft.padding.only(left=10),
                 ),
-                ft.Divider(height=1, color="white"),
+                #ft.Divider(height=1, color="white"),
+                ft.Container(
+                    content=ft.ResponsiveRow(
+                        [
+                            ft.Text("Entrainement mentale", size=17,weight=ft.FontWeight.BOLD),
+                            ft.Text("Renforcez vos connaissances et capacités avec le Feed, s'échauffer sur: "),
+                            ft.OutlinedButton(
+                                    icon=ft.icons.AUTO_STORIES,
+                                    text=f"Cryptographie",
+                                    on_click=lambda e: send_data(e, "/feed"),
+                                    height=50,
+                                    style=ft.ButtonStyle(
+                                        shape=ft.RoundedRectangleBorder(radius=10),
+                                        overlay_color="#1d5384",
+                                        color="#FFFFFF",
+                                    ),
+                                ),
+                        ]
+                    ),
+                ),
+                #ft.Divider(height=1, color="white"),
                 ft.Container(
                     content=ft.ResponsiveRow(
                         [
@@ -134,24 +175,26 @@ def accueil(router_data: Union[Router, str, None] = None):
                                 size=17,
                                 weight=ft.FontWeight.BOLD,
                             ),
+                            ft.Text("Ne perdez pas votre concentration continuez à vous concentrez"),
                             ft.OutlinedButton(
                                 icon=ft.icons.ACCESS_TIME,
                                 text="Continuer à travailler",
                                 on_click=lambda e: send_data(e, "/pomodoro"),
                                 height=50,
                                 style=ft.ButtonStyle(
-                                    shape=ft.RoundedRectangleBorder(radius=20),
+                                    shape=ft.RoundedRectangleBorder(radius=10),
                                     overlay_color="#1d5384",
+                                    color="#FFFFFF"
                                 ),
                             ),
                         ],
                         spacing=20,
                         alignment=ft.MainAxisAlignment.CENTER,
                     ),
-                    height=60,
+                    height=110,
                 ),
 
-                ft.Divider(height=1, color="white"),
+                #ft.Divider(height=1, color="white"),
                 ft.Container(
                     content=ft.ResponsiveRow(
                         [
@@ -206,7 +249,7 @@ def accueil(router_data: Union[Router, str, None] = None):
             horizontal_alignment=ft.CrossAxisAlignment.CENTER,
         ),
         width=400,
-        height=900,
+        height=1100,
         padding=ft.padding.all(10),
         border_radius=20,
     )

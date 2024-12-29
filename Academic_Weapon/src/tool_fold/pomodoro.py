@@ -173,6 +173,7 @@ def pomodoro(router):
             self.page.snack_bar = ft.SnackBar(
                 ft.Text(f"Vous avez gagné: {value} xp")
             )
+            #self.page.overlay.append()
             self.page.snack_bar.open = True
             self.page.update()
                 

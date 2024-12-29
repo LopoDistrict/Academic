@@ -1,19 +1,2 @@
 id,question,answer
-fCXhFIyfSZ,qs,sqsqds
-5Yc0FggOxQ,ssdqsdqdqs,sqdqdsqd
-iJvpTarCi0,"quelle est la valeur de i à la fin
-for (int i=0; i<7; i++)",i = 6;
-0htH1vZSaM,comment parcourir vector<vector<int>> f;,"for(int i=0; f.size();i++){
-for(int j=0; f[i].size(); j++){
-cout << f[i][j];
-}
-}
-"
-lW61MUMtW1,quelle est la complexité de la dichotomie?,O(nlog(n))
-Npd2Wt7SBT,Qui a introduit la psychanalyse,Sigmund Freud
-XQYCKrHf5Q,qui est une pute,ta grande daronne
-U1eF3NxUCR,qu'est ce que la dichotomie,mÃ©thodes pour chercher une valeur rapidement dans une liste/tableau de int 
-5vP1DPQJmf,dsqqsd,qsdsqd
-3EM4qQfTzU,sqdsqds,sdqsdqqssqd
-wYjp3zrXLM,fdfsdfsd,sdfdsffsd
-oo9SFV1u18,dfsdfs,fsdsfdfs
+PrhenAOlXu,c,d

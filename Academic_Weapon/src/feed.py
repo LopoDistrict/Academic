@@ -9,7 +9,6 @@ from tool_fold import file_manager
 from time import sleep
 
 
-
 class AIApp(ft.UserControl):
     def __init__(self):
         super().__init__()
@@ -20,7 +19,7 @@ class AIApp(ft.UserControl):
         self.exercice = ("pivot de Gauss", "droit des personnes", "Matrice de permutation")
         self.value = ""
 
-        #utile pour première fois
+        # Dropdown for levels
         self.niveaux = ft.Dropdown(
             width=225,
             hint_text="Entrez le sujet ou la matière",
@@ -33,11 +32,14 @@ class AIApp(ft.UserControl):
                 ft.dropdown.Option("Le plus compliqué"),
             ],
         )
-        
+
+        # TextField for themes
         self.themes = ft.TextField(
             label="Themes ex(cryptographie,méca. fluide)", expand=True, border=ft.InputBorder.UNDERLINE, max_lines=3,
             border_color="#FFFFFF", border_width=2
         )
+
+        # AlertDialog for first-time setup
         self.first_time = ft.AlertDialog(
             modal=True,
             visible=False,
@@ -60,7 +62,7 @@ class AIApp(ft.UserControl):
                                     icon=ft.icons.CHECK,
                                     width=165,
                                     height=45,
-                                    on_click=lambda e: self.handle_close_qu,
+                                    on_click=self.handle_close_qu,
                                     style=ft.ButtonStyle(bgcolor="#48dc03", color="#FFFFFF", overlay_color="#55ec04"),
                                 ),
                                 ft.FilledButton(
@@ -79,7 +81,7 @@ class AIApp(ft.UserControl):
             ],
         )
 
-
+        # Determine random choice
         if self.choice == "libre":
             self.value = rand_pick(self.libre)
         elif self.choice == "question":
@@ -90,17 +92,13 @@ class AIApp(ft.UserControl):
             self.value = rand_pick(self.resume)
 
         self.fs = file_manager.FileSystem()
-        if(self.fs.is_empty("assets/user_data/model_ai_user.txt")):
-            self.first_time.visible = True
+
+
 
         self.prompt = ft.TextField(
             label=f"{self.value}", expand=True, border=ft.InputBorder.UNDERLINE, max_lines=5,
-            border_color="#FFFFFF",border_width=2, bgcolor="#272727", 
+            border_color="#FFFFFF", border_width=2, bgcolor="#272727", 
         )
-
-        
-        
-
 
         self.response_text = ft.Markdown()
         self.nom_fic = ft.TextField(label="Nom du fichier")
@@ -152,14 +150,11 @@ class AIApp(ft.UserControl):
             ],
         )
 
-
-
-        
-
     def handle_close_qu(self, e):
         self.fs.append_file(self.niveaux.value, 0, "assets/user_data/user_log.txt")
         self.fs.append_file(self.themes.value.split(","), 1, "assets/user_data/user_log.txt")
         self.first_time.visible = False
+        self.update()
 
     def handle_change(self, e):
         self.choice = e.control.selected_index
@@ -168,7 +163,6 @@ class AIApp(ft.UserControl):
             self.choice = "libre"
             self.prompt.label = rand_pick(self.libre)
             print(self.prompt.label)
-
 
         elif self.choice == 1:
             self.prompt.label = "question"
@@ -182,7 +176,6 @@ class AIApp(ft.UserControl):
             self.prompt.label = rand_pick(self.resume)
 
         self.update()
-
 
     def send_data(self, e, target_page):
         sleep(0.1)
@@ -224,7 +217,6 @@ class AIApp(ft.UserControl):
         self.prompt.value = ""
 
     def save(self, e):
-        
         file_path = self.fs.write_to_file("./document/" + self.nom_fic.value + ".md", self.response_text.value)
 
         e.page.snack_bar = ft.SnackBar(
@@ -283,6 +275,7 @@ class AIApp(ft.UserControl):
                         border=ft.border.all(2, ft.Colors.WHITE),
                         border_radius=5,
                         bgcolor="#060606",
+                        expand=True,
                     ),
                     ft.Column(
                         [
@@ -311,6 +304,10 @@ class AIApp(ft.UserControl):
             ),
         )
 
-
 def feed(router_data: Union[Router, str, None] = None):
+    """
+    # Check if the file is empty to show the alert
+    if self.fs.is_empty("assets/user_data/model_ai_user.txt"):
+        self.first_time.visible = True
+    """
     return AIApp()

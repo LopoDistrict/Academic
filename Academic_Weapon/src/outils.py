@@ -50,7 +50,7 @@ def outils(router_data: Union[Router, str, None] = None):
                         ),
                         ft.ElevatedButton(
                             icon=ft.icons.EDIT_NOTE,
-                            text=ft.Text("simple editeur", size=25,weight=ft.FontWeight.BOLD).value,
+                            text=ft.Text("editeur de note simple", size=25,weight=ft.FontWeight.BOLD).value,
                             width=60,
                             height=80,
                             on_click=lambda e: send_data(e, "/simple_editeur"),
@@ -64,7 +64,7 @@ def outils(router_data: Union[Router, str, None] = None):
                         ),
                         ft.ElevatedButton(
                             icon=ft.icons.EDIT,
-                            text="Markdown note Editeur",
+                            text="Editeur de note Markdown  ",
                             width=60,
                             height=80,
                             on_click=lambda e: send_data(e, "/markdown_editor"),

@@ -50,18 +50,32 @@ class FileSystem:
             return self.base_path / ("src/" + filename)
 
     def is_empty(self, filename) -> bool:
+        file_path = self.get_file_path(filename)    
+        if os.path.getsize(file_path) == 0:
+            return True
+        return False
+
+    def write_csv(self, filename, data):
         file_path = self.get_file_path(filename)
-        with open(file_path, 'r') as file_obj:
-            first_char = file_obj.read(1)
-            if not first_char:
-                return True
-            return False
+        with open(file_path, "a") as file:
+            writer = csv.writer(file)
+            writer.writerows(data)
+
+    def read_csv(self, filename):
+        file_path = self.get_file_path(filename)
+        try:
+            with open(file_path, "r") as file:
+                reader = csv.reader(file)
+                return [row for row in reader]
+        except FileNotFoundError:
+            print(f"not foud {FileNotFoundError}")
+            return [] 
 
 
     def write_to_file(self, filename: str, content: str) -> str:
         file_path = self.get_file_path(filename)
         with open(file_path, "w", encoding='utf-8') as file:
-            file.write(content)
+            file.write(str(content))
         return str(file_path)
 
 
@@ -129,6 +143,9 @@ class FileSystem:
                 if id in line:
                     return line.split(',')[id]
 
+    def del_content(self, path):
+        file_path = self.get_file_path(path)
+        open(file_path, 'w').close()
 
     def app_csv(self, path, value):
         file_path = self.get_file_path(path)

@@ -58,7 +58,7 @@ class sql_data:
 
             mycursor = mydb.cursor()
 
-            mycursor.execute("SELECT num_document FROM document ORDER BY num_document ASC LIMIT 1;")
+            mycursor.execute("SELECT num_document FROM document ORDER BY num_document DESC LIMIT 1;")
             myresult = mycursor.fetchone()
             last_num_document = myresult[0] if myresult else 0
 
@@ -246,13 +246,13 @@ def communaute(router_data: Union[str, None] = None):
             etiquette.upload_document_ftp(selected_file['path'], selected_file['name'])
             print("File uploaded to FTP server.")
 
-            e.page.close(upload_alert)
+            e.page.close(upload_alert)  
 
             e.page.snack_bar = ft.SnackBar(
                 ft.Text(f"Le fichier a bien été uploadé")
             )
             e.page.snack_bar.open = True
-            self.update()
+            e.page.update()
 
 
         except Exception as ex:
@@ -262,7 +262,7 @@ def communaute(router_data: Union[str, None] = None):
                 ft.Text(f"Il y a eu une erreur dans l'upload, retentez plus tard")
             )
             e.page.snack_bar.open = True
-            self.update()
+            e.page.update()
 
     # Initialize the file picker<
     pick_files_dialog = ft.FilePicker(on_result=on_file_pick_result)
