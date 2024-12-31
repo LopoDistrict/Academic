@@ -10,7 +10,6 @@ def send_data(e, target_page):
     time.sleep(0.1)
     e.page.go(target_page)
 
-    
 
 
 def outils(router_data: Union[Router, str, None] = None):
@@ -48,20 +47,20 @@ def outils(router_data: Union[Router, str, None] = None):
                                 overlay_color="#0080ff",
                             ),
                         ),
-                        ft.ElevatedButton(
-                            icon=ft.icons.EDIT_NOTE,
-                            text=ft.Text("editeur de note simple", size=25,weight=ft.FontWeight.BOLD).value,
-                            width=60,
-                            height=80,
-                            on_click=lambda e: send_data(e, "/simple_editeur"),
-                            style=ft.ButtonStyle(
-                                shape=ft.RoundedRectangleBorder(radius=10),
-                                 color="#FFFFFF",
-                                bgcolor="#3974ab",
-                                overlay_color="#0080ff", 
-                                 
-                            ),
-                        ),
+                        #ft.ElevatedButton(
+                        #    icon=ft.icons.EDIT_NOTE,
+                        #    text=ft.Text("editeur de note simple", size=25,weight=ft.FontWeight.BOLD).value,
+                        #    width=60,
+                        #    height=80,
+                        #    on_click=lambda e: send_data(e, "/simple_editeur"),
+                        #    style=ft.ButtonStyle(
+                        #        shape=ft.RoundedRectangleBorder(radius=10),
+                        #         color="#FFFFFF",
+                        #        bgcolor="#3974ab",
+                        #        overlay_color="#0080ff", 
+                        #         
+                        #    ),
+                        #),
                         ft.ElevatedButton(
                             icon=ft.icons.EDIT,
                             text="Editeur de note Markdown  ",
@@ -104,21 +103,22 @@ def outils(router_data: Union[Router, str, None] = None):
                             ),
                             
                         ),
+                        
+                        #ft.FilledButton(
+                        #    icon=ft.icons.DOCUMENT_SCANNER,
+                        #    text="Visionneur de document",
+                        #    width=60,
+                        #    height=80,
+                        #    
+                        #    on_click=lambda e: send_data(e, "/doc"),
+                        #    style=ft.ButtonStyle(
+                        #        shape=ft.RoundedRectangleBorder(radius=10),
+                        #        color="#FFFFFF",
+                        #        bgcolor="#3974ab", 
+                        #        overlay_color="#0080ff",                               
+                        #    ),
+                        #),
 
-                        ft.FilledButton(
-                            icon=ft.icons.DOCUMENT_SCANNER,
-                            text="Visionneur de document",
-                            width=60,
-                            height=80,
-                            
-                            on_click=lambda e: send_data(e, "/doc"),
-                            style=ft.ButtonStyle(
-                                shape=ft.RoundedRectangleBorder(radius=10),
-                                color="#FFFFFF",
-                                bgcolor="#3974ab", 
-                                overlay_color="#0080ff",                               
-                            ),
-                        ),
                         ft.FilledButton(
                             icon=ft.icons.DRAW,
                             text="Notes en dessin[à venir]",

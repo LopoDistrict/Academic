@@ -12,23 +12,21 @@ def flash_cards(router):
             for i in range(len(saved)):
                 create_card(saved[i][1], saved[i][2], saved[i][0], False)
         except FileNotFoundError:
-            pass  # If file doesn't exist, no cards to load
+            pass
 
     def save_flash_card_to_csv(card_id, question_text, response_text):
-        """Save a new flash card to the CSV file."""
         fs = file_manager.FileSystem()
         fs.app_csv("assets/user_data/flash_card.csv", [card_id, question_text, response_text])
 
     def delete_flash_card_from_csv(card_id):
-        """Delete a flash card from the CSV file."""
         fs = file_manager.FileSystem()
         data = fs.read_csv("assets/user_data/flash_card.csv")
-        data = [row for row in data if row[0] != card_id]
-        fs.del_content("assets/user_data/flash_card.csv")
-        for i in range(len(data)):
-            fs.app_csv("assets/user_data/flash_card.csv", data[i])
+        data = [row for row in data if row[0] != card_id]  # Filter out the card to delete
+        fs.del_content("assets/user_data/flash_card.csv")  # Clear the file
+        for row in data:
+            fs.app_csv("assets/user_data/flash_card.csv", row)  # Rewrite the remaining cards
 
-    def create_card(question_text, response_text, flag, card_id=None):
+    def create_card(question_text, response_text, card_id=None, save_to_csv=True):
         """Create a new flash card and add it to the page."""
         def get_random_hex_color():
             return '#' + ''.join([choice('0123456789ABCDEF') for _ in range(6)])
@@ -42,14 +40,14 @@ def flash_cards(router):
             stack.update()
 
         def delete_card(e):
-            delete_flash_card_from_csv(card_id)
-            cards_column.controls.remove(card)
+            delete_flash_card_from_csv(card_id)  # Delete the card from the CSV file
+            cards_column.controls.remove(card)  # Remove the card from the UI
             e.page.update()
 
         card_id = card_id or file_manager.FileSystem().uniq_id()
         print(f"card_id: {card_id}")
         card = ft.Container(
-            content=ft.Column(
+            content=ft.Stack(
                 [
                     ft.Container(
                         ft.Text(question_text, size=20, weight=ft.FontWeight.BOLD),
@@ -65,10 +63,14 @@ def flash_cards(router):
                         expand=True,
                         visible=False,
                     ),
-                    ft.IconButton(icon=ft.icons.DELETE, on_click=delete_card, icon_color="#FFFFFF"),
+                    ft.IconButton(
+                        icon=ft.icons.DELETE,
+                        on_click=delete_card,
+                        icon_color="#FFFFFF",
+                        top=5,
+                        right=5,
+                    ),
                 ],
-                
-                alignment=ft.MainAxisAlignment.CENTER,
             ),
             bgcolor=couleur_fond,
             width=500,
@@ -79,13 +81,13 @@ def flash_cards(router):
         )
 
         cards_column.controls.append(card)
-        if flag == True:
+        if save_to_csv:
             save_flash_card_to_csv(card_id, question_text, response_text)
 
     def add_new_card(e):
         fs = file_manager.FileSystem()
         fs.append_file(randint(8, 13), 3, 'assets/user_data/user_log.txt')  # Add XP
-        create_card(question.value, response.value, True)
+        create_card(question.value, response.value, save_to_csv=True)
         response.value = ""
         question.value = ""
         e.page.close(dlg_modal)

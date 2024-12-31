@@ -46,8 +46,7 @@ def librairie(router_data: Union[Router, str, None] = None):
                     )
                     # Append the button to the 'searched' column
                     searched.controls.append(temp_searched)
-        
-        # Update the 'searched' column to reflect changes
+                
         searched.update()
 
 

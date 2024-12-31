@@ -22,7 +22,7 @@ class AIApp(ft.UserControl):
         # Dropdown for levels
         self.niveaux = ft.Dropdown(
             width=225,
-            hint_text="Entrez le sujet ou la matière",
+            hint_text="Entrez votre niveaux",
             options=[
                 ft.dropdown.Option("Débutant"),
                 ft.dropdown.Option("Intermédiaire"),
@@ -38,11 +38,28 @@ class AIApp(ft.UserControl):
             label="Themes ex(cryptographie,méca. fluide)", expand=True, border=ft.InputBorder.UNDERLINE, max_lines=3,
             border_color="#FFFFFF", border_width=2
         )
-
+        self.explication = ft.BottomSheet(
+        dismissible=True,
+        content=ft.Container(
+            padding=50,
+            content=ft.Column(
+                tight=True,
+                controls=[
+                    ft.Text(
+                        "Ces informations sont collectées pour affiner notre IA afin de pouvoir vous proposez du contenu plus adapté et intéressant",
+                        size=15,
+                        
+                    ),
+                    ft.ElevatedButton(
+                        "Fermer", on_click=lambda e: e.page.close(self.explication)
+                    ),
+                ],
+            ),
+        ),
+    )
         # AlertDialog for first-time setup
         self.first_time = ft.AlertDialog(
             modal=True,
-            visible=False,
             title=ft.Text("Personnalisez votre Feed"),
             actions=[
                 ft.ResponsiveRow(
@@ -100,6 +117,7 @@ class AIApp(ft.UserControl):
             border_color="#FFFFFF", border_width=2, bgcolor="#272727", 
         )
 
+
         self.response_text = ft.Markdown()
         self.nom_fic = ft.TextField(label="Nom du fichier")
 
@@ -151,10 +169,10 @@ class AIApp(ft.UserControl):
         )
 
     def handle_close_qu(self, e):
-        self.fs.append_file(self.niveaux.value, 0, "assets/user_data/user_log.txt")
-        self.fs.append_file(self.themes.value.split(","), 1, "assets/user_data/user_log.txt")
-        self.first_time.visible = False
-        self.update()
+        self.fs.append_file(self.niveaux.value, 6, "assets/user_data/user_log.txt")
+        self.fs.append_file(self.themes.value.split(","), 7, "assets/user_data/user_log.txt")
+        e.page.close(self.first_time)
+        e.page.update()
 
     def handle_change(self, e):
         self.choice = e.control.selected_index
@@ -182,39 +200,45 @@ class AIApp(ft.UserControl):
         e.page.go(target_page)
 
     def AI_response(self, e, value):
-        client = InferenceClient(api_key="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")
-        preset = {
-            "libre": "",
-            "question": "Peux tu me faires des Questions sur le sujet suivant: ", 
-            "exercice": "Peut tu me donner des exercices structurés différents et pertinents pour en acquérir les connaissance sur: ",
-            "fiche": "Aide moi en faisant un résumé structuré sur: ",
-        }
+        if not len(self.fs.read_given_line("assets/user_data/user_log.txt", 6).strip()):
+            #le choix n'as pas été fait
+            e.page.open(self.first_time)
+            print("empty")
+        else:
+            client = InferenceClient(api_key="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")
+            preset = {
+                "libre": "",
+                "question": "Peux tu me faires des Questions sur le sujet suivant: ", 
+                "exercice": "Peut tu me donner des exercices structurés différents et pertinents pour en acquérir les connaissance sur: ",
+                "fiche": "Aide moi en faisant un résumé structuré sur: ",
+            }
 
-        print("prompt " + preset[value])
-        print(value)
+            print("prompt " + preset[value])
+            print(value)
+            difficulte = "de cette difficulté: " + self.fs.read_given_line("assets/user_data/user_log.txt", 6)
 
-        messages = [
-            {"role": "user", "content": f"{preset[value]} {self.prompt.value}"}
-        ]
+            messages = [
+                {"role": "user", "content": f"{preset[value]} {self.prompt.value} {difficulte}"}
+            ]
 
-        stream = client.chat.completions.create(
-            model="meta-llama/Meta-Llama-3-8B-Instruct",
-            messages=messages, 
-            temperature=0.5,
-            max_tokens=6000,
-            top_p=0.7,
-            stream=True
-        )
+            stream = client.chat.completions.create(
+                model="meta-llama/Meta-Llama-3-8B-Instruct",
+                messages=messages, 
+                temperature=0.5,
+                max_tokens=6000,
+                top_p=0.7,
+                stream=True
+            )
 
-        if self.response_text.value is None:
-            self.response_text.value = ""
+            if self.response_text.value is None:
+                self.response_text.value = ""
 
-        for chunk in stream:
-            response_chunk = str(chunk.choices[0].delta.content)
-            self.response_text.value += response_chunk  
-            self.response_text.update()
-            print(response_chunk, end="")
-        self.prompt.value = ""
+            for chunk in stream:
+                response_chunk = str(chunk.choices[0].delta.content)
+                self.response_text.value += response_chunk  
+                self.response_text.update()
+                print(response_chunk, end="")
+            self.prompt.value = ""
 
     def save(self, e):
         file_path = self.fs.write_to_file("./document/" + self.nom_fic.value + ".md", self.response_text.value)
@@ -267,7 +291,7 @@ class AIApp(ft.UserControl):
                         ],
                         horizontal_alignment=ft.CrossAxisAlignment.START,
                     ),
-                    self.first_time,
+                    
                     ft.Container(
                         ft.Column([self.response_text,], scroll=ft.ScrollMode.AUTO, ),
                         height=400,
@@ -305,9 +329,5 @@ class AIApp(ft.UserControl):
         )
 
 def feed(router_data: Union[Router, str, None] = None):
-    """
-    # Check if the file is empty to show the alert
-    if self.fs.is_empty("assets/user_data/model_ai_user.txt"):
-        self.first_time.visible = True
-    """
+
     return AIApp()

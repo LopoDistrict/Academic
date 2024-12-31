@@ -2,150 +2,91 @@ import flet as ft
 import threading
 import time
 from . import file_manager
-import math
 from random import randint
 
 def pomodoro(router):
     fs = file_manager.FileSystem()
-    old_xp = fs.read_given_line('assets/user_data/user_log.txt', 3)
-    fs.append_file(randint(8,13), 3, 'assets/user_data/user_log.txt') #on lui ajoute de l'xp
 
     class Pomodoro(ft.UserControl):
         def __init__(self):
             super().__init__()
-            self.time_left = ft.Text(value="25:00", size=40, color="white")
-
-            self.start_button = ft.OutlinedButton(
-                text="Débuter",
-                on_click=self.start_timer,
-                adaptive=True,
-                width=150,
-                height=50,
-                style=ft.ButtonStyle(
-                    shape=ft.RoundedRectangleBorder(radius=10),
-                    
-                    color="#FFFFFF",
-                    overlay_color="#0b70d4", 
-                ),
-            )
-
-            self.reset_button = ft.OutlinedButton(
-                text="Reset",
-                on_click=self.reset_timer,
-                adaptive=True,
-                width=150,
-                height=50,
-                style=ft.ButtonStyle(
-                    shape=ft.RoundedRectangleBorder(radius=10),
-                    color="#FFFFFF",
-                    overlay_color="#0b70d4", 
-                ),
-            )
-
             self.timer_duration = 25  # Default timer duration in minutes
-            self.running = False
             self.time_remaining = self.timer_duration * 60  # Time remaining in seconds
+            self.running = False
+
+            self.time_left = ft.Text(value=self.format_time(self.time_remaining), size=40, color="white")
+
+            self.start_button = self.create_button("Débuter", self.start_timer)
+            self.reset_button = self.create_button("Reset", self.reset_timer)
+
+        def create_button(self, text, on_click):
+            return ft.OutlinedButton(
+                text=text,
+                on_click=on_click,
+                adaptive=True,
+                width=150,
+                height=50,
+                style=ft.ButtonStyle(
+                    shape=ft.RoundedRectangleBorder(radius=10),
+                    color="#FFFFFF",
+                    overlay_color="#0b70d4",
+                ),
+            )
 
         def build(self):
-            # Build the layout
             return ft.Column(
                 [
-                    ft.Column(
-                        [],
-                        spacing=55,
-                    ),
+                    ft.Column([], spacing=55),
                     ft.Row(
                         [
-                            ft.Container(
-                                ft.Column(
-                                    [
-                                        ft.Text(
-                                            "Travail",
-                                            size=30,
-                                            weight=ft.FontWeight.BOLD,
-                                        ),
-                                        ft.FilledButton(
-                                            text="25 min.",
-                                            on_click=lambda _: self.set_timer(25),
-                                            adaptive=True,
-                                            width=125,
-                                            height=45,
-                                            style=ft.ButtonStyle(bgcolor="#939cfc", overlay_color="#adb4ff"),
-                                        ),
-                                        ft.FilledButton(
-                                            text="50 min.",
-                                            on_click=lambda _: self.set_timer(50),
-                                            adaptive=True,
-                                            width=125,
-                                            height=45,
-                                            style=ft.ButtonStyle(bgcolor="#939cfc", overlay_color="#adb4ff"),
-                                        ),
-                                    ],
-                                    alignment=ft.MainAxisAlignment.CENTER,
-                                    spacing=5,
-                                    width=170,
-                                ),
-                                bgcolor="#ab0101",
-                                width=150,
-                                border_radius=15,
-                                padding=15,
-                            ),
-                            ft.Container(
-                                ft.Column(
-                                    [
-                                        ft.Text(
-                                            "Pause",
-                                            size=30,
-                                            weight=ft.FontWeight.BOLD,
-                                        ),
-                                        ft.FilledButton(
-                                            text="5 min.",
-                                            on_click=lambda _: self.set_timer(5),
-                                            adaptive=True,
-                                            width=125,
-                                            height=45,
-                                            style=ft.ButtonStyle(bgcolor="#939cfc", overlay_color="#adb4ff"),
-                                        ),
-                                        ft.FilledButton(
-                                            text="15 min.",
-                                            on_click=lambda _: self.set_timer(15),
-                                            adaptive=True,
-                                            width=125,
-                                            height=45,
-                                            style=ft.ButtonStyle(bgcolor="#939cfc", overlay_color="#adb4ff"),
-                                        ),
-                                    ],
-                                    alignment=ft.MainAxisAlignment.CENTER,
-                                    spacing=5,
-                                    width=170,
-                                ),
-                                bgcolor="#25a9b2",
-                                width=150,
-                                border_radius=15,
-                                padding=15,
-                            ),
+                            self.create_timer_container("Travail", ["25 min.", "50 min."], [25, 50], "#ab0101"),
+                            self.create_timer_container("Pause", ["5 min.", "15 min."], [5, 15], "#25a9b2"),
                         ],
                         alignment=ft.MainAxisAlignment.CENTER,
                     ),
-                    ft.Row(
-                        [self.start_button, self.reset_button],
-                        alignment=ft.MainAxisAlignment.CENTER,
-                        height=115,
-                    ),
-                    ft.Row(
-                        [self.time_left],
-                        alignment=ft.MainAxisAlignment.CENTER,
-                    ),
+                    ft.Row([self.start_button, self.reset_button], alignment=ft.MainAxisAlignment.CENTER, height=115),
+                    ft.Row([self.time_left], alignment=ft.MainAxisAlignment.CENTER),
                 ]
             )
+
+        def create_timer_container(self, title, button_texts, durations, bgcolor):
+            return ft.Container(
+                ft.Column(
+                    [
+                        ft.Text(title, size=30, weight=ft.FontWeight.BOLD),
+                        *[self.create_duration_button(text, duration) for text, duration in zip(button_texts, durations)],
+                    ],
+                    alignment=ft.MainAxisAlignment.CENTER,
+                    spacing=5,
+                    width=170,
+                ),
+                bgcolor=bgcolor,
+                width=150,
+                border_radius=15,
+                padding=15,
+            )
+
+        def create_duration_button(self, text, duration):
+            return ft.FilledButton(
+                text=text,
+                on_click=lambda _: self.set_timer(duration),
+                adaptive=True,
+                width=125,
+                height=45,
+                style=ft.ButtonStyle(bgcolor="#939cfc", overlay_color="#adb4ff"),
+            )
+
+        def format_time(self, seconds):
+            mins, secs = divmod(seconds, 60)
+            return f"{mins:02}:{secs:02}"
 
         def set_timer(self, minutes):
             self.start_button.text = "Débuter"
             if self.running:
-                self.running = False  
+                self.running = False
             self.timer_duration = minutes
             self.time_remaining = self.timer_duration * 60
-            self.time_left.value = f"{minutes:02}:00"
+            self.time_left.value = self.format_time(self.time_remaining)
             self.update()
 
         def start_timer(self, e):
@@ -155,34 +96,33 @@ def pomodoro(router):
                 self.update()
                 self.run_timer()
             else:
-                temps_tavail = (self.timer_duration * 60) - (int(self.time_left.value[3:5]) + (int(self.time_left.value[0:2])*60))
-                self.write_time(str(temps_tavail))
                 self.running = False
                 self.start_button.text = "Continuer"
                 self.update()
-        
-        def write_time(self, value):   
-            fs = file_manager.FileSystem()
-            file_path = "./assets/user_data/user_log.txt"  
-            anc_val = int(fs.read_given_line("assets/user_data/user_log.txt", 1))       
-            fs.append_file(str(int(value) + int(anc_val)), 1, file_path)
+                self.write_time()
 
-            old_xp = int(fs.read_given_line("assets/user_data/user_log.txt", 3))
-            fs.append_file(str(int(value) + int(old_xp)), 3, file_path)
+        def write_time(self):
+            elapsed_time = self.timer_duration * 60 - self.time_remaining
+            try:
+                file_path = "assets/user_data/user_log.txt"
+                old_xp = int(fs.read_given_line(file_path, 3))
+                fs.append_file(str(elapsed_time + old_xp), 3, file_path)
+                self.show_snackbar(f"Vous avez gagné: {elapsed_time} xp")
+            except Exception as e:
+                print(f"Error writing to file: {e}")
 
-            self.page.snack_bar = ft.SnackBar(
-                ft.Text(f"Vous avez gagné: {value} xp")
-            )
-            #self.page.overlay.append()
-            self.page.snack_bar.open = True
-            self.page.update()
-                
+        def show_snackbar(self, message):
+            try:
+                self.page.snack_bar = ft.SnackBar(ft.Text(message))
+                self.page.snack_bar.open = True
+                self.page.update()
+            except Exception as e:
+                print(f"Error showing snackbar: {e}")
 
         def run_timer(self):
             def countdown():
                 while self.time_remaining > 0 and self.running:
-                    mins, secs = divmod(self.time_remaining, 60)
-                    self.time_left.value = f"{mins:02}:{secs:02}"
+                    self.time_left.value = self.format_time(self.time_remaining)
                     self.update()
                     time.sleep(1)
                     self.time_remaining -= 1
@@ -192,18 +132,17 @@ def pomodoro(router):
                     self.running = False
                     self.start_button.text = "Débuter"
                     self.update()
+                    self.write_time()
 
             thread = threading.Thread(target=countdown, daemon=True)
             thread.start()
 
         def reset_timer(self, e):
             self.running = False
-            temps_tavail = (self.timer_duration * 60) - (int(self.time_left.value[3:5]) + (int(self.time_left.value[0:2])*60))
-            self.write_time(str(temps_tavail))
+            self.write_time()
             self.time_remaining = self.timer_duration * 60
-            self.time_left.value = f"{self.timer_duration:02}:00"
+            self.time_left.value = self.format_time(self.time_remaining)
             self.start_button.text = "Débuter"
             self.update()
 
-    
     return Pomodoro()

@@ -14,8 +14,6 @@ def send_data(e, target_page):
     e.page.go(target_page)
 
 
-
-
 def is_nv_streak():
     fs = file_manager.FileSystem()
     
@@ -92,7 +90,7 @@ def accueil(router_data: Union[Router, str, None] = None):
                 tight=True,
                 controls=[
                     ft.Text(
-                        "Le work streak vous pousse à la régularité et à la discipline dans votre Travail. Chaque où vous vous connectez de suite vous obtenez de l'expérience et vous éliminez votre procratination. ",
+                        "Le work streak vous pousse à la régularité et à la discipline dans votre Travail. Chaque fois que vous vous connectez de suite vous obtenez de l'expérience et vous éliminez votre procratination. ",
                         size=15,
                     ),
                     ft.ElevatedButton(
@@ -109,11 +107,11 @@ def accueil(router_data: Union[Router, str, None] = None):
     x = datetime.datetime.now()
     hour = int(x.strftime("%H"))
     if 8 <= hour <= 12:
-        value_hour = "Bonjour" 
-    elif hour >= 18:
-        value_hour = "Bonsoir"
+        value_hour = "Bonjour " 
+    elif 12 <= hour <= 18:
+        value_hour = "Bon Après midi "
     else:
-        value_hour = "Bon Après midi, "
+        value_hour = "Bonsoir "
 
     val_temp = is_nv_streak()
 
@@ -121,7 +119,7 @@ def accueil(router_data: Union[Router, str, None] = None):
     content = ft.Container(
         ft.Column(
             [
-                ft.Text(value_hour, size=30, weight=ft.FontWeight.BOLD),
+                ft.Text(value_hour + fs.read_given_line("assets/user_data/user_log.txt", 5), size=30, weight=ft.FontWeight.BOLD),
                 ft.Container(
                     content=ft.Row(
                         [

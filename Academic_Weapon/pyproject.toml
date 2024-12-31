@@ -1,19 +1,16 @@
 [project]
 name = "Academic Weapon"
-version = "0.1.0"
+version = "0.1.1"
 description = "L'app qui vous faut pour réaliser votre academic comeback!"
 readme = "README.md"
 requires-python = ">=3.8"
 authors = [
-  {name = "Captain Komodo"}
+  {name = "Komodo"}
 ]
 dependencies = [
   "flet==0.25.2",
   "mysql-connector-python==9.1.0",
   "huggingface_hub==0.27.0",
-  "pdf2image==1.17.0",
-  "pypdf==5.1.0"
-  
 ]
 
 
@@ -30,7 +27,7 @@ product = "Academic Weapon"
 company = "Komodo"
 
 # copyright text to display in about app dialogs
-copyright = "Copyright (C) 2024 by Flet"
+copyright = "Copyright (C) 2024 by Komodo"
 
 [tool.flet.app]
 path = "src"
@@ -41,3 +38,7 @@ file_picker = "8.1.6"
 [tool.flet.android.permission]
 "android.permission.MANAGE_EXTERNAL_STORAGE" = true
 "android.permission.STORAGE" = true
+
+[tool.flet.splash]
+dark_color = "#0e0e0e" # --splash-dark-color
+color = "#0e0e0e"

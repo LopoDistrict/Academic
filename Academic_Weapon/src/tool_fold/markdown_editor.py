@@ -1,10 +1,7 @@
 import flet as ft
-import sys 
-import os.path
-from typing import Union
+import os
 from . import file_manager
-
-
+from random import randint
 
 def markdown_editor(router):
     def update_preview(e):
@@ -13,66 +10,82 @@ def markdown_editor(router):
         """
         md.value = text_field.value
         e.page.update()
-    
+
     def handle_close(e):
         e.page.close(dlg_modal)
 
-    def load_from_save(e: ft.FilePickerResultEvent):
-        if e.files and len(e.files) > 0:  
-            selected_file = (e.files[0].path).split("src")[-1]
-            
-            fs = file_manager.FileSystem()
-            try:
-                content = fs.read_from_file(selected_file)  # Read the file content
-                text_field.value = content
-                md.value = content
+    def load_file(e, file_path):
+        try:
+            with open(file_path, "r") as file:
+                content = file.read()
 
-                
-                e.page.snack_bar = ft.SnackBar(
-                    ft.Text(f"Fichier ouvert: {selected_file}")
-                )
-                e.page.snack_bar.open = True
-                e.page.update()
-            except Exception as ex:
-                e.page.snack_bar = ft.SnackBar(
-                    ft.Text(f"Erreur lors de l'ouverture du fichier: {ex}")
-                )
-                e.page.snack_bar.open = True
-                e.page.update()
-    
-    def fp(e):
-        pick_files_dialog.pick_files(allow_multiple=False, 
-        allowed_extensions=["md", "txt", "py", "cpp", "js", ".java", ".jar"],
-        initial_directory="./document")
+            text_field.value = content
+            md.value = content
+
+            e.page.snack_bar = ft.SnackBar(ft.Text(f"Fichier ouvert: {file_path}"))
+            e.page.snack_bar.open = True
+            e.page.update()
+
+            e.page.close(dlg_modal)
+        except Exception as ex:
+            e.page.snack_bar = ft.SnackBar(ft.Text(f"Erreur lors de l'ouverture du fichier: {ex}"))
+            e.page.snack_bar.open = True
+            e.page.update()
+
+    def get_document_directory():
+        if "ANDROID_BOOTLOGO" in os.environ:
+            return os.path.join(os.getcwd(), "document")
+        return os.path.join(os.getcwd(), "src/document")
+
+    def show_file_explorer(e):
+        document_dir = get_document_directory()
+        file_buttons = []
+
+        if os.path.exists(document_dir):
+            for file_name in os.listdir(document_dir):
+                if file_name.endswith((".md", ".txt", ".py", ".cpp", ".js", ".java", ".jar")):
+                    file_button = ft.ElevatedButton(
+                        text=file_name,
+                        on_click=lambda e, fn=file_name: load_file(e, os.path.join(document_dir, fn)),
+                        style=ft.ButtonStyle(color="#0080ff", shape=ft.RoundedRectangleBorder(radius=10)),
+                    )
+                    file_buttons.append(file_button)
+        else:
+            file_buttons.append(ft.Text("Le dossier 'document' n'existe pas."))
+
+        file_explorer_dialog = ft.AlertDialog(
+            modal=True,
+            title=ft.Text("Sélectionnez un fichier"),
+            content=ft.Column(
+                file_buttons,
+                scroll=ft.ScrollMode.AUTO,
+                height=200,
+                width=300,
+            ),
+            actions=[ft.TextButton("Fermer", on_click=lambda e: e.page.close(file_explorer_dialog))],
+        )
+
+        e.page.dialog = file_explorer_dialog
+        file_explorer_dialog.open = True
+        e.page.update()
 
     def save(e):
         """
         Save the content to a file.
         """
         fs = file_manager.FileSystem()
-        file_path = fs.write_to_file("./document/" + nom_fic.value + ".md", text_field.value)
-        
-        e.page.snack_bar = ft.SnackBar(
-            ft.Text(f"Fichier sauvegardé: {nom_fic.value}")
-        )
+        file_path = fs.write_to_file("document/" + nom_fic.value + ".md", text_field.value)
+
+        e.page.snack_bar = ft.SnackBar(ft.Text(f"Fichier sauvegardé: {nom_fic.value}"))
         e.page.snack_bar.open = True
         e.page.update()
-        e.page.close(dlg_modal)
 
         value = randint(0, 10)
         old_xp = int(fs.read_given_line("assets/user_data/user_log.txt", 3))
         fs.append_file(str(int(value) + int(old_xp)), 3, file_path)
-        e.page.snack_bar = ft.SnackBar(
-            ft.Text(f"Vous avez gagné: {value} xp")
-        )
+        e.page.snack_bar = ft.SnackBar(ft.Text(f"Vous avez gagné: {value} xp"))
         e.page.snack_bar.open = True
         e.page.update()
-
-    pick_files_dialog = ft.FilePicker(on_result=load_from_save)
-
-
-    router.page.overlay.append(pick_files_dialog)
-    router.page.update()
 
     nom_fic = ft.TextField(label="Nom du fichier")
     dlg_modal = ft.AlertDialog(
@@ -113,19 +126,13 @@ def markdown_editor(router):
         |---------------|-------------|
         |ceci est un     | tableau      |
         """),
-        actions=[
-            ft.Row(
-                [
-                    ft.TextButton("Fermer", on_click=close_help),
-                ],
-            ),
-        ],
+        actions=[ft.TextButton("Fermer", on_click=close_help)],
     )
 
     help_button = ft.OutlinedButton(
         text="aide",
         icon=ft.icons.HELP,
-        on_click=lambda e: e.page.open(dlg_help),
+        on_click=lambda e: e.page.dialog = dlg_help,
         adaptive=True,
         width=100,
         height=50,
@@ -135,16 +142,17 @@ def markdown_editor(router):
     save_button = ft.OutlinedButton(
         text="Enreg.",
         icon=ft.icons.SAVE_ALT,
-        on_click=lambda e: e.page.open(dlg_modal),
+        on_click=lambda e: e.page.dialog = dlg_modal,
         adaptive=True,
         width=100,
         height=50,
         style=ft.ButtonStyle(color="#0080ff", shape=ft.RoundedRectangleBorder(radius=10)),
     )
+
     load_button = ft.OutlinedButton(
         text="Charger",
         icon=ft.icons.FOLDER_COPY_ROUNDED,
-        on_click=fp,
+        on_click=show_file_explorer,
         adaptive=True,
         width=100,
         height=50,
@@ -158,9 +166,8 @@ def markdown_editor(router):
         expand=True,
         border_color=ft.colors.TRANSPARENT,
         label="Ecrivez vos notes ici",
-        max_lines=9,
     )
-    
+
     md = ft.Markdown(
         value=text_field.value,
         selectable=True,
@@ -171,10 +178,13 @@ def markdown_editor(router):
     col = ft.Column(
         controls=[
             ft.Row([help_button, save_button, load_button]),
-            text_field,
+            ft.Container(
+                content=text_field,
+                expand=True,
+            ),
             ft.Divider(height=5, color="white"),
             ft.Container(
-                ft.Column([md], scroll="hidden"),
+                content=ft.Column([md], scroll=ft.ScrollMode.AUTO),
                 expand=True,
                 alignment=ft.alignment.top_left,
             ),

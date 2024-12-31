@@ -50,7 +50,7 @@ def simple_editeur(router):
 
         def save(self, e):
             fs = file_manager.FileSystem()
-            file_path = fs.write_to_file(f"./document/{self.nom_fic.value}.txt", self.t.value)
+            file_path = fs.write_to_file(f"document/{self.nom_fic.value}.txt", self.t.value)
 
             e.page.snack_bar = ft.SnackBar(
                 ft.Text(f"Fichier sauvegardé: {self.nom_fic.value}")

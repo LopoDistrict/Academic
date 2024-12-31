@@ -95,7 +95,7 @@ class FileSystem:
             return file.readlines()[line]
 
     def get_last_modified(self):
-        doc_path = self.get_file_path("./document/")
+        doc_path = self.get_file_path("document/")
         latest_time = datetime.datetime.min  # Initialize to the earliest possible datetime
         latest_path = ""
 
