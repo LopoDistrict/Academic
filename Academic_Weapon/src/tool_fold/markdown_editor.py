@@ -2,6 +2,10 @@ import flet as ft
 import os
 from . import file_manager
 from random import randint
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
 def markdown_editor(router):
     def update_preview(e):
@@ -28,16 +32,21 @@ def markdown_editor(router):
 
             e.page.close(dlg_modal)
         except Exception as ex:
+            logging.error(f"Error loading file: {ex}")
             e.page.snack_bar = ft.SnackBar(ft.Text(f"Erreur lors de l'ouverture du fichier: {ex}"))
             e.page.snack_bar.open = True
             e.page.update()
 
     def get_document_directory():
-        if "ANDROID_BOOTLOGO" in os.environ:
-            return os.path.join(os.getcwd(), "document")
-        return os.path.join(os.getcwd(), "src/document")
+        """
+        Returns the path to the document directory based on the environment.
+        """
+        return os.path.join(os.getcwd(), "document" if "ANDROID_BOOTLOGO" in os.environ else "src/document")
 
     def show_file_explorer(e):
+        """
+        Displays a file explorer dialog to select a file.
+        """
         document_dir = get_document_directory()
         file_buttons = []
 
@@ -74,7 +83,7 @@ def markdown_editor(router):
         Save the content to a file.
         """
         fs = file_manager.FileSystem()
-        file_path = fs.write_to_file("document/" + nom_fic.value + ".md", text_field.value)
+        file_path = fs.write_to_file(f"document/{nom_fic.value}.md", text_field.value)
 
         e.page.snack_bar = ft.SnackBar(ft.Text(f"Fichier sauvegardé: {nom_fic.value}"))
         e.page.snack_bar.open = True
@@ -82,11 +91,12 @@ def markdown_editor(router):
 
         value = randint(0, 10)
         old_xp = int(fs.read_given_line("assets/user_data/user_log.txt", 3))
-        fs.append_file(str(int(value) + int(old_xp)), 3, file_path)
+        fs.append_file(str(value + old_xp), 3, file_path)
         e.page.snack_bar = ft.SnackBar(ft.Text(f"Vous avez gagné: {value} xp"))
         e.page.snack_bar.open = True
         e.page.update()
 
+    # UI Components
     nom_fic = ft.TextField(label="Nom du fichier")
     dlg_modal = ft.AlertDialog(
         modal=True,
@@ -132,7 +142,7 @@ def markdown_editor(router):
     help_button = ft.OutlinedButton(
         text="aide",
         icon=ft.icons.HELP,
-        on_click=lambda e: e.page.dialog = dlg_help,
+        on_click=lambda e: e.page.open(dlg_help),
         adaptive=True,
         width=100,
         height=50,
@@ -142,7 +152,7 @@ def markdown_editor(router):
     save_button = ft.OutlinedButton(
         text="Enreg.",
         icon=ft.icons.SAVE_ALT,
-        on_click=lambda e: e.page.dialog = dlg_modal,
+        on_click=lambda e: e.page.open(dlg_modal),
         adaptive=True,
         width=100,
         height=50,

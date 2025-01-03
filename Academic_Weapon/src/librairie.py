@@ -4,16 +4,34 @@ from tool_fold.Router import Router
 from tool_fold import file_manager
 from pathlib import Path
 import os
+from random import randint
 
 def send_data(e, target_page):
     e.page.go(target_page)
+    e.page.update() 
 
 def librairie(router_data: Union[Router, str, None] = None):
     searched = ft.Column()
 
     extension_route = {"md": "/markdown_editor",
-                    "txt": "/simple_editeur",
-                    "pdf": "/doc"}
+                       "txt": "/simple_editeur",
+                       "pdf": "/doc"}
+
+    def handle_download(e, url):
+        fs = file_manager.FileSystem()
+        ret = fs.download(url)
+        if ret == -1:
+            e.page.snack_bar = ft.SnackBar(ft.Text("Une erreur est survenue lors du téléchargement"))
+            e.page.snack_bar.open = True
+            e.page.update()
+        else:
+            file_path = "assets/user_data/user_log.txt"
+            old_xp = int(fs.read_given_line(file_path, 3))
+            fs.append_file(str(randint(3,15) + old_xp), 3, file_path)
+
+            e.page.snack_bar = ft.SnackBar(ft.Text("le fichier a été téléchargé"))
+            e.page.snack_bar.open = True
+            e.page.update()
 
     def search(e):
         # Clear previous search results
@@ -49,25 +67,28 @@ def librairie(router_data: Union[Router, str, None] = None):
                 
         searched.update()
 
-
-
     fs = file_manager.FileSystem()
     liked_doc = fs.matrix_csv("assets/user_data/liked.csv")
 
     liked_buttons = []
     for doc in liked_doc:
-        button = ft.FilledButton(
-            icon=ft.icons.INSERT_DRIVE_FILE,
-            text=doc[1],  
-            width=300,
-            height=40,
-            on_click=lambda e, fn=doc[1]: send_data(e, extension_route.get(fn.split('.')[-1], "/librairie")),
-            style=ft.ButtonStyle(
-                shape=ft.RoundedRectangleBorder(radius=10),
-                color="#FFFFFF",
-                bgcolor="#3B556D",
-                overlay_color="#0b70d4",
-            ),
+        button = ft.Row(
+            [
+                ft.FilledButton(
+                    icon=ft.icons.INSERT_DRIVE_FILE,
+                    text=doc[1],  
+                    width=270,
+                    height=40,
+                    on_click=lambda e, fn=doc[1]: send_data(e, extension_route.get(fn.split('.')[-1], "/librairie")),
+                    style=ft.ButtonStyle(
+                        shape=ft.RoundedRectangleBorder(radius=10),
+                        color="#FFFFFF",
+                        bgcolor="#3B556D",
+                        overlay_color="#0b70d4",
+                        ),
+                    ),
+                    ft.IconButton(icon=ft.icons.DOWNLOAD, icon_color="#FFFFFF", on_click=lambda e: handle_download(e, doc[3])),
+                ]
         )
         liked_buttons.append(button)
 
@@ -91,7 +112,7 @@ def librairie(router_data: Union[Router, str, None] = None):
                             ft.FilledButton(
                                 icon=ft.icons.INSERT_DRIVE_FILE,
                                 text=f"{fs.get_last_modified()}",
-                                width=300,
+                                width=270,
                                 height=40,
                                 on_click=lambda e, fn=fs.get_last_modified(): send_data(e, extension_route.get(fn.split('.')[-1], "/librairie")),
                                 style=ft.ButtonStyle(

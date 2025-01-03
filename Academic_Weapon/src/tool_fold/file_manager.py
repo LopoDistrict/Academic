@@ -3,8 +3,9 @@ from pathlib import Path
 import os.path, time
 import datetime
 import random
-
+import ftplib
 import csv
+
 
 class FileSystem:
     def __init__(self):
@@ -48,6 +49,46 @@ class FileSystem:
         else:
             print(f"base path {self.base_path / ("src/" + filename)}")
             return self.base_path / ("src/" + filename)
+
+    def download(self, url):
+        # Fill Required Information
+        HOSTNAME = "ftpupload.net"
+        USERNAME = "if0_37999130"
+        PASSWORD = "KTihAaTOhwN"
+        
+        try:
+            # Connect to the FTP server
+            ftp_server = ftplib.FTP(HOSTNAME, USERNAME, PASSWORD)
+            ftp_server.encoding = "utf-8"
+            
+            # Extract the filename from the URL
+            filename = url.split("/")[-1]
+            filename = filename.replace("\n", "")  # Clean the filename
+            
+            # Navigate to the target directory on the FTP server
+            ftp_server.cwd('htdocs')
+            ftp_server.cwd('com_docs')
+            
+            # Define the local download path
+            download_dir = "/storage/emulated/0/Download"
+            local_file_path = os.path.join(download_dir, filename)
+            
+            # Ensure the download directory exists
+            os.makedirs(download_dir, exist_ok=True)
+            
+            # Download the file
+            with open(local_file_path, "wb") as file:
+                ftp_server.retrbinary(f"RETR {filename}", file.write)
+            
+            print(f"File downloaded successfully: {local_file_path}")
+            
+        except ftplib.all_errors as e:
+            print(f"FTP error occurred: {e}")
+        except Exception as e:
+            print(f"An error occurred: {e}")
+        finally:
+            if 'ftp_server' in locals():
+                ftp_server.quit()
 
     def is_empty(self, filename) -> bool:
         file_path = self.get_file_path(filename)    

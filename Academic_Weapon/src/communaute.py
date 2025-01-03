@@ -33,18 +33,27 @@ class sql_data:
         return ''.join(random.choice(self.char) for _ in range(10))
 
     def pick_files_result(self, e: ft.FilePickerResultEvent):
-        if e.files:
-            file_names = ", ".join(f.name for f in e.files)
-            logging.info(f"Files selected: {file_names}")
-            file_path.value = file_names
+        try:
+            if e.files:
+                file_names = ", ".join(f.name for f in e.files)
+                logging.info(f"Files selected: {file_names}")
+                file_path.value = file_names
+                file_path.update()
+            else:
+                logging.info("File selection cancelled.")
+        except Exception as ex:
+            logging.error(f"Error in pick_files_result: {ex}")
+            file_path.value = "Erreur lors de la sélection du fichier"
             file_path.update()
-        else:
-            logging.info("File selection cancelled.")
 
     def send_data(self, e, target_page):
-        time.sleep(0.1)
-        e.scale = 2
-        e.page.go(target_page)
+        try:
+            time.sleep(0.1)
+            e.scale = 2
+            e.page.go(target_page)
+            e.page.update()
+        except Exception as ex:
+            logging.error(f"Error in send_data: {ex}")
 
     def upload_document_db(self, title, description, file_name):
         try:
@@ -76,6 +85,9 @@ class sql_data:
         except mysql.connector.Error as err:
             logging.error(f"Database error: {err}")
             raise
+        except Exception as ex:
+            logging.error(f"Unexpected error in upload_document_db: {ex}")
+            raise
 
     def retrieve_data_server(self) -> tuple:
         try:
@@ -87,7 +99,7 @@ class sql_data:
                 port=3306,
             ) as mydb:
                 with mydb.cursor() as mycursor:
-                    sql = "SELECT * FROM document WHERE num_document = %s ORDER BY date_document DESC"
+                    sql = "SELECT * FROM document WHERE num_document = %s ORDER BY date_document ASC"
                     logging.info(f"Retrieving data for index: {self.index}")
                     mycursor.execute(sql, (self.index,))
                     myresult = mycursor.fetchall()
@@ -96,7 +108,7 @@ class sql_data:
             logging.error(f"Database error: {err}")
             return ()
         except Exception as ex:
-            logging.error(f"Unexpected error: {ex}")
+            logging.error(f"Unexpected error in retrieve_data_server: {ex}")
             return ()
 
     def upload_document_ftp(self, path, nom):
@@ -127,21 +139,24 @@ class sql_data:
             raise
 
     def save_like(self, e, nom, desc, lien):
-        fs = file_manager.FileSystem()
-        like_icon = e.control.content
+        try:
+            fs = file_manager.FileSystem()
+            like_icon = e.control.content
 
-        if like_icon.color == "#dcdcdc":
-            like_icon.color = "#db025e"
-            fs.app_csv("assets/user_data/liked.csv", [fs.uniq_id(), nom, desc, lien])
-        else:
-            like_icon.color = "#dcdcdc"
-            ligne = fs.search_line_csv("assets/user_data/liked.csv", lien)
-            fs.delete_row_csv("assets/user_data/liked.csv", ligne + 1)
+            if like_icon.color == "#dcdcdc":
+                like_icon.color = "#db025e"
+                fs.app_csv("assets/user_data/liked.csv", [fs.uniq_id(), nom, desc, lien])
+            else:
+                like_icon.color = "#dcdcdc"
+                ligne = fs.search_line_csv("assets/user_data/liked.csv", lien)
+                fs.delete_row_csv("assets/user_data/liked.csv", ligne + 1)
 
-        e.page.update()
+            e.page.update()
+        except Exception as ex:
+            logging.error(f"Error in save_like: {ex}")
 
     def add_new_label(self, e, etiquette_data):
-        for i in range(5):
+        for i in range(3):
             try:
                 value_retrieved = self.retrieve_data_server()
                 self.index += 1
@@ -149,53 +164,51 @@ class sql_data:
                 if not value_retrieved:
                     logging.info("No more data to retrieve.")
                     self.index -= 1
+                    return
+
+                logging.info(f"Retrieved data: {value_retrieved}")
+
+                for i in range(len(value_retrieved[0])):
+                    logging.info(f"{i}: {value_retrieved[0][i]}")
+
+                like_icon = ft.Icon(name=ft.icons.FAVORITE, color="#dcdcdc", size=40)
+
+                nv_label = ft.Container(
+                    content=ft.Row(
+                        [
+                            ft.Column(
+                                controls=[
+                                    ft.Text(value_retrieved[0][1], size=18, weight=ft.FontWeight.BOLD),
+                                    ft.Text(value_retrieved[0][2], size=15),
+                                    ft.Text(
+                                        f"{value_retrieved[0][3]}B • {value_retrieved[0][7]}",
+                                        size=12,
+                                        color="#d2dbe3",
+                                    ),
+                                    ft.Text(f"Par {value_retrieved[0][5]}", size=11, color="#5af979"),
+                                ]
+                            ),
+                            ft.Container(
+                                content=like_icon,
+                                on_click=lambda e, title=value_retrieved[0][1], desc=value_retrieved[0][2], url=f"https://academic-weapon.rf.gd/com_docs/{value_retrieved[0][0]}.{value_retrieved[0][7]}":
+                                self.save_like(e, title, desc, url),
+                            ),
+                        ],
+                        alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                    ),
+                    padding=15,
+                    border_radius=7,
+                    on_click=lambda e: print("Clickable without Ink clicked!"),
+                )
+
+                if hasattr(etiquette_data, "controls"):
+                    etiquette_data.controls.append(nv_label)
+                    etiquette_data.controls.append(ft.Divider(height=10, color="white", thickness=3))
+                    e.page.update()
                 else:
-                    logging.info(f"Retrieved data: {value_retrieved}")
-                    for i in range(len(value_retrieved[0])):
-                        logging.info(f"{i}: {value_retrieved[0][i]}")
-
-                    like_icon = ft.Icon(name=ft.icons.FAVORITE, color="#dcdcdc", size=40)
-
-                    nv_label = ft.Container(
-                        content=ft.Row(
-                            [
-                                ft.Column(
-                                    controls=[
-                                        ft.Text(value_retrieved[0][1], size=18, weight=ft.FontWeight.BOLD),
-                                        ft.Text(value_retrieved[0][2], size=15),
-                                        ft.Text(
-                                            f"{value_retrieved[0][3]}B • {value_retrieved[0][7]}",
-                                            size=12,
-                                            color="#d2dbe3",
-                                        ),
-                                        ft.Text(f"Par {value_retrieved[0][5]}", size=11, color="#5af979"),
-                                    ]
-                                ),
-                                ft.Container(
-                                    content=like_icon,
-                                    on_click=lambda e, title=value_retrieved[0][1], desc=value_retrieved[0][2], url=f"https://academic-weapon.rf.gd/com_docs/{value_retrieved[0][0]}.{value_retrieved[0][7]}":
-                                    self.save_like(e, title, desc, url),
-                                ),
-                            ],
-                            alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
-                        ),
-                        padding=15,
-                        border_radius=7,
-                        on_click=lambda e: print("Clickable without Ink clicked!"),
-                    )
-
-                    if hasattr(etiquette_data, "controls"):
-                        etiquette_data.controls.append(nv_label)
-                        etiquette_data.controls.append(ft.Divider(height=10, color="white", thickness=3))
-                        e.page.update()
-                    else:
-                        logging.error("Error: Invalid etiquette_data structure.")
-
+                    logging.error("Error: Invalid etiquette_data structure.")
             except Exception as ex:
-                logging.error(f"An error occurred: {ex}")
-                return
-
-# Rest of the script remains the same...
+                logging.error(f"An error occurred in add_new_label: {ex}")
 
 
 def communaute(router_data: Union[str, None] = None):
@@ -203,33 +216,35 @@ def communaute(router_data: Union[str, None] = None):
     selected_file = {}
 
     def add_file_pick(e):
-        print("___start add_file_pick")
-        pick_files_dialog.pick_files()
+        try:
+            logging.info("Starting file picker")
+            pick_files_dialog.pick_files()
+        except Exception as ex:
+            logging.error(f"Error in add_file_pick: {ex}")
 
     def on_file_pick_result(e: ft.FilePickerResultEvent):
-        print("___start pick_files_result")
-        if e.files and e.files[0].path:  # Check if files are selected and path is valid
-            try:
-                selected_file['path'] = os.path.abspath(e.files[0].path)  # Get absolute path
+        try:
+            if e.files and e.files[0].path:
+                selected_file['path'] = os.path.abspath(e.files[0].path)
                 selected_file['name'] = e.files[0].name
-                print(f"File selected: {selected_file['name']}")
-                print(f"path selected: {selected_file['path']}")
+                logging.info(f"File selected: {selected_file['name']}")
+                logging.info(f"Path selected: {selected_file['path']}")
                 file_path.value = f"fichier: {selected_file['name']}"
                 file_path.update()
-            except Exception as ex:
-                print(f"Error processing file path: {ex}")
-                selected_file.clear()  # Clear the selected file if there's an error
-                file_path.value = "Erreur: Chemin de fichier invalide"
+            else:
+                logging.info("File selection cancelled.")
+                selected_file.clear()
+                file_path.value = "Pas de fichier sélectionné"
                 file_path.update()
-        else:
-            print("File selection cancelled.")
-            selected_file.clear()  # Clear the selected file if no file is selected
-            file_path.value = "Pas de fichier sélectionné"
+        except Exception as ex:
+            logging.error(f"Error in on_file_pick_result: {ex}")
+            selected_file.clear()
+            file_path.value = "Erreur: Chemin de fichier invalide"
             file_path.update()
 
     def handle_upload(e):
         if 'path' not in selected_file or not os.path.exists(selected_file['path']):
-            print("No file selected or file path is invalid!")
+            logging.error("No file selected or file path is invalid!")
             e.page.snack_bar = ft.SnackBar(
                 ft.Text("Aucun fichier sélectionné ou chemin de fichier invalide")
             )
@@ -238,15 +253,17 @@ def communaute(router_data: Union[str, None] = None):
             return
 
         try:
+            # Show loading indicator
+            e.page.splash = ft.ProgressBar()
+            e.page.update()
+
             # Upload file data to the database
             etiquette.upload_document_db(titre.value, description.value, selected_file['path'])
-            print("File data uploaded to database.")
+            logging.info("File data uploaded to database.")
 
             # Upload file to the FTP server
             etiquette.upload_document_ftp(selected_file['path'], selected_file['name'])
-            print("File uploaded to FTP server.")
-            print(f"selected_file['path']: {selected_file['path']}")
-            print(f"selected_file['name']: {selected_file['name']}")
+            logging.info("File uploaded to FTP server.")
 
             # Close the upload alert and show success message
             e.page.close(upload_alert)
@@ -254,23 +271,26 @@ def communaute(router_data: Union[str, None] = None):
                 ft.Text("Le fichier a bien été uploadé")
             )
             e.page.snack_bar.open = True
-            e.page.update()
-
         except Exception as ex:
-            print(f"Error during upload: {ex}")
-            traceback.print_exc() 
-
+            logging.error(f"Error during upload: {ex}")
+            traceback.print_exc()
             e.page.snack_bar = ft.SnackBar(
                 ft.Text(f"Il y a eu une erreur dans l'upload, retentez plus tard: {ex}")
             )
             e.page.snack_bar.open = True
+        finally:
+            # Remove loading indicator
+            e.page.splash = None
             e.page.update()
 
     pick_files_dialog = ft.FilePicker(on_result=on_file_pick_result)
 
     def setup_file_picker(page):
-        if pick_files_dialog not in page.overlay:
-            page.overlay.append(pick_files_dialog)
+        try:
+            if pick_files_dialog not in page.overlay:
+                page.overlay.append(pick_files_dialog)
+        except Exception as ex:
+            logging.error(f"Error in setup_file_picker: {ex}")
 
     titre = ft.TextField(
         label="Titre",
@@ -328,7 +348,10 @@ def communaute(router_data: Union[str, None] = None):
     tos = ft.Radio(value="Accept", label="Cet Upload Respecte les C.U")
 
     def handle_close(e):
-        e.page.close(upload_alert)
+        try:
+            e.page.close(upload_alert)
+        except Exception as ex:
+            logging.error(f"Error in handle_close: {ex}")
 
     upload_alert = ft.AlertDialog(
         modal=True,
@@ -422,7 +445,6 @@ def communaute(router_data: Union[str, None] = None):
                                 shape=ft.RoundedRectangleBorder(radius=2),
                             ),
                         ),
-
                     ],
                     alignment=ft.MainAxisAlignment.CENTER,
                 ),

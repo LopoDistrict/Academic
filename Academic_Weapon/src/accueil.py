@@ -12,7 +12,7 @@ from random import randint
 def send_data(e, target_page):
     time.sleep(0.1)
     e.page.go(target_page)
-
+    e.page.update()
 
 def is_nv_streak():
     fs = file_manager.FileSystem()
@@ -144,19 +144,19 @@ def accueil(router_data: Union[Router, str, None] = None):
                 ft.Container(
                     content=ft.ResponsiveRow(
                         [
-                            ft.Text("Entrainement mentale", size=17,weight=ft.FontWeight.BOLD),
+                            ft.Text("Entrainement mentale", size=17, weight=ft.FontWeight.BOLD),
                             ft.Text("Renforcez vos connaissances et capacités avec le Feed, s'échauffer sur: "),
                             ft.OutlinedButton(
-                                    icon=ft.icons.AUTO_STORIES,
-                                    text=f"Cryptographie",
-                                    on_click=lambda e: send_data(e, "/feed"),
-                                    height=50,
-                                    style=ft.ButtonStyle(
-                                        shape=ft.RoundedRectangleBorder(radius=10),
-                                        overlay_color="#1d5384",
-                                        color="#FFFFFF",
-                                    ),
+                                icon=ft.icons.AUTO_STORIES,
+                                text="Cryptographie",
+                                on_click=lambda e: send_data(e, "/feed"),
+                                height=50,
+                                style=ft.ButtonStyle(
+                                    shape=ft.RoundedRectangleBorder(radius=10),
+                                    overlay_color="#1d5384",
+                                    color="#FFFFFF",
                                 ),
+                            ),
                         ]
                     ),
                 ),
@@ -251,5 +251,6 @@ def accueil(router_data: Union[Router, str, None] = None):
         padding=ft.padding.all(10),
         border_radius=20,
     )
+
 
     return content
