@@ -1,8 +1,6 @@
 import flet as ft
-import threading
-import time
+
 from . import file_manager
-from random import randint
 
 def pomodoro(router):
     fs = file_manager.FileSystem()
@@ -31,6 +29,7 @@ def pomodoro(router):
                     color="#FFFFFF",
                     overlay_color="#0b70d4",
                 ),
+                animate_scale=ft.Animation(duration=300, curve=ft.AnimationCurve.EASE_IN_OUT),
             )
 
         def build(self):
@@ -69,12 +68,26 @@ def pomodoro(router):
         def create_duration_button(self, text, duration):
             return ft.FilledButton(
                 text=text,
-                on_click=lambda _: self.set_timer(duration),
+                on_click=lambda e: (self.set_timer(duration), self.bounce_animation(e)),
                 adaptive=True,
                 width=125,
                 height=45,
-                style=ft.ButtonStyle(bgcolor="#939cfc", overlay_color="#adb4ff"),
+                style=ft.ButtonStyle(
+                    color="#FFFFFF",
+                    bgcolor="#2a72b9",
+                    overlay_color="#adb4ff",
+                ),
+                animate_scale=ft.Animation(duration=300, curve=ft.AnimationCurve.EASE_IN_OUT),
             )
+
+        def bounce_animation(self, e):
+            from time import sleep
+            """Trigger a smooth bouncing animation on the clicked element."""
+            e.control.scale = 1.2
+            e.control.update()
+            sleep(0.1)
+            e.control.scale = 1.0
+            e.control.update()
 
         def format_time(self, seconds):
             mins, secs = divmod(seconds, 60)
@@ -120,11 +133,13 @@ def pomodoro(router):
                 print(f"Error showing snackbar: {e}")
 
         def run_timer(self):
+            from threading import Thread 
             def countdown():
+                from time import sleep
                 while self.time_remaining > 0 and self.running:
                     self.time_left.value = self.format_time(self.time_remaining)
                     self.update()
-                    time.sleep(1)
+                    sleep(1)
                     self.time_remaining -= 1
 
                 if self.running:
@@ -134,7 +149,7 @@ def pomodoro(router):
                     self.update()
                     self.write_time()
 
-            thread = threading.Thread(target=countdown, daemon=True)
+            thread = Thread(target=countdown, daemon=True)
             thread.start()
 
         def reset_timer(self, e):

@@ -1,9 +1,6 @@
 import flet as ft
 from tool_fold.routes import router
 from tool_fold import file_manager
-import os
-from random import randint, choice
-import time
 import logging
 import asyncio
 
@@ -11,13 +8,12 @@ import asyncio
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
 def check_debbug():
-    time.sleep(1)
     files = (
         "accueil.py", "communaute.py", "librairie.py", "outils.py", "State.py",
         "tool_fold/doc.py", "tool_fold/file_manager.py", "tool_fold/flash_cards.py",
         "tool_fold/markdown_editor.py", "tool_fold/note.py", "tool_fold/pomodoro.py",
         "tool_fold/Router.py", "tool_fold/routes.py", "tool_fold/simple_editeur.py",
-        "tool_fold/todo.py"
+        "tool_fold/todo.py", "about.py"
     )
     fs = file_manager.FileSystem()
 
@@ -54,6 +50,7 @@ async def main(page: ft.Page):
     permission_container = ft.Column()
 
     async def request_permissions(e):
+        from os import getcwd, environ, walk
         try:
             manage_result = ph.request_permission(ft.PermissionType.MANAGE_EXTERNAL_STORAGE)
             storage_result = ph.request_permission(ft.PermissionType.STORAGE)
@@ -67,10 +64,10 @@ async def main(page: ft.Page):
                 fs.read_given_line("assets/user_data/user_log.txt", 0)
                 page.add(ft.Text("File read, no error"))
 
-                page.add(ft.Text(os.getcwd()))
-                page.add(ft.Text(str(os.environ)))
+                page.add(ft.Text(getcwd()))
+                page.add(ft.Text(str(environ)))
 
-                for root, dirs, files in os.walk(os.getcwd()):
+                for root, dirs, files in walk(getcwd()):
                     if dirs:
                         for dir_name in dirs:
                             page.add(ft.Text(f"  - {dir_name}"))
@@ -85,6 +82,7 @@ async def main(page: ft.Page):
             logging.error(f"Error in request_permissions: {error}")
             page.add(ft.Text(f"Error: {error}"))
 
+    from random import choice
     loading_screen = ft.ResponsiveRow(
         [
             ft.Container(
@@ -100,7 +98,7 @@ async def main(page: ft.Page):
                                 ),
                             ],
                         ),
-                        ft.Container(height=50),
+                        ft.Container(height=30),
                         ft.ResponsiveRow(
                             [
                                 ft.Image(
@@ -112,7 +110,7 @@ async def main(page: ft.Page):
                                 ),
                             ],
                         ),
-                        ft.Container(height=40),
+                        ft.Container(height=30),
                         ft.ResponsiveRow(
                             [
                                 ft.Text(
@@ -121,10 +119,13 @@ async def main(page: ft.Page):
                                     weight=ft.FontWeight.BOLD,
                                     italic=True
                                 ),
-                                ft.ProgressBar(width=400, height=10, color="#0080ff", bgcolor="#eeeeee"),
+                                ft.Container(height=10),
+                                ft.ProgressBar(width=400, height=10, color="#0080ff", bgcolor="#eeeeee", border_radius=ft.border_radius.all(20)),
+                                ft.Container(height=5),
+                                ft.Text("Academic_Weapon_client_version=BETA_1.0.2", size=8)
                             ],
                             alignment=ft.MainAxisAlignment.CENTER,
-                            spacing=20,
+                            spacing=30,
                         ),
                     ],
                     alignment=ft.MainAxisAlignment.CENTER,
@@ -134,18 +135,16 @@ async def main(page: ft.Page):
                 padding=ft.padding.all(20),
             ),
         ],
-        spacing=35,
+        spacing=25,
         alignment=ft.MainAxisAlignment.CENTER,
     )
 
     page.add(loading_screen)
 
-    #await asyncio.sleep(3)  # Simulate loading
+    await asyncio.sleep(3)
     logging.info(f"Debug check: {check_debbug()}")
     loading_screen.controls.clear()
     page.update()
-
-    #    await asyncio.sleep(5)
 
     def save(e):
         try:
@@ -187,6 +186,7 @@ async def main(page: ft.Page):
 
     def handle_nav_change(e):
         selected_index = e.control.selected_index
+        print(f"_____e.control.selected_index {e.control.selected_index}")
         titles = ["feed", "Outils", "Accueil", "Communauté", "Librairie"]
         routes = ["/feed", "/outil", "/", "/communaute", "/librairie"]
 

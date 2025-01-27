@@ -38,7 +38,3 @@ file_picker = "8.1.6"
 [tool.flet.android.permission]
 "android.permission.MANAGE_EXTERNAL_STORAGE" = true
 "android.permission.STORAGE" = true
-
-[tool.flet.splash]
-dark_color = "#0e0e0e" # --splash-dark-color
-color = "#0e0e0e"

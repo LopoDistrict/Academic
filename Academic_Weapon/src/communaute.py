@@ -1,15 +1,10 @@
 import flet as ft
 from typing import Union
-import random
-import time
+
 import os.path
-import mysql.connector
-import ftplib
-from tool_fold import file_manager
-import traceback
 import logging
 
-# Configure logging
+
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
 class sql_data:
@@ -29,8 +24,57 @@ class sql_data:
         )
         self.temp_file_id = ""
 
+        self.title_aff = ft.Text(size=23, weight=ft.FontWeight.BOLD)
+        self.info_aff = ft.Text(size=15)
+        self.type_aff = ft.Text(size=15)
+        self.desc_aff = ft.Text(size=14, color="#ababab")
+
+        self.info = ft.AlertDialog(
+            content=ft.Container(
+                ft.Column(
+                    [
+                        ft.Row(
+                            [
+                                ft.IconButton(
+                                    icon=ft.Icons.CLOSE,
+                                    icon_color="#FFFFFF",
+                                    icon_size=20,
+                                    on_click=lambda e: e.page.close(self.info),
+                                )
+                            ],
+                            vertical_alignment=ft.CrossAxisAlignment.START,
+                            ),
+                            ft.ResponsiveRow(
+                            [
+                                self.title_aff,
+                                self.info_aff,
+                                self.type_aff,
+                                self.desc_aff,
+                            ],
+                            alignment=ft.MainAxisAlignment.CENTER,
+                        ),
+                    ],
+                    height=200,
+                    spacing=20,
+                ),
+            ),
+        )
+
+    def show(self ,e , title, desc, type, info):
+        self.title_aff.value = title
+        self.info_aff.value = str(int(info.split("_")[0])/10**6) + "mb " + info.split("_")[1]
+        self.type_aff.value = "type de fichier: ."+ type
+        self.desc_aff.value = desc
+        logging.info(f"title_aff.value {self.title_aff.value}")
+        logging.info(f"info_aff.value  {self.info_aff.value}")
+        logging.info(f"type_aff.value  {self.type_aff.value}")
+        logging.info(f"desc_aff.value  {self.desc_aff.value}")
+
+        e.page.open(self.info)
+
     def uniq_id(self):
-        return ''.join(random.choice(self.char) for _ in range(10))
+        from random import choice
+        return ''.join(choice(self.char) for _ in range(10))
 
     def pick_files_result(self, e: ft.FilePickerResultEvent):
         try:
@@ -47,17 +91,17 @@ class sql_data:
             file_path.update()
 
     def send_data(self, e, target_page):
-        try:
-            time.sleep(0.1)
-            e.scale = 2
-            e.page.go(target_page)
-            e.page.update()
-        except Exception as ex:
-            logging.error(f"Error in send_data: {ex}")
+        from time import sleep
+        sleep(0.1)
+        titles = {"/feed": 0, "/outil": 1, "/pomodoro": 1, "/": 2, "/about": 2, "/communaute": 3, "/librairie": 4}
+        e.page.navigation_bar.selected_index = titles[target_page]
+        e.page.go(target_page)
+        e.page.update()
 
     def upload_document_db(self, title, description, file_name):
+        from mysql.connector import Error, connect
         try:
-            with mysql.connector.connect(
+            with connect(
                 user="academic_togetherme",
                 password="5279abd1804fbed3cd683f591a5b51001acc32f2",
                 host="72con.h.filess.io",
@@ -82,16 +126,31 @@ class sql_data:
                     mycursor.execute(sql, values)
                     mydb.commit()
                     logging.info("Document data inserted successfully.")
-        except mysql.connector.Error as err:
+        except Error as err:
             logging.error(f"Database error: {err}")
             raise
         except Exception as ex:
             logging.error(f"Unexpected error in upload_document_db: {ex}")
             raise
 
-    def retrieve_data_server(self) -> tuple:
+    def handle_search(self, e, value, etiquette_data, load):
+
+        etiquette_data.controls.clear()
+        e.page.update()
+
+        search_results = self.search(value)
+
+        if search_results:
+
+            logging.info(f"Value searched {search_results}")
+            self.add_new_label(e, search_results, etiquette_data, load, True)
+        else:
+            logging.info("No search results found.")
+
+    def search(self, value):
+        from mysql.connector import Error, connect
         try:
-            with mysql.connector.connect(
+            with connect(
                 user="academic_togetherme",
                 password="5279abd1804fbed3cd683f591a5b51001acc32f2",
                 host="72con.h.filess.io",
@@ -99,12 +158,34 @@ class sql_data:
                 port=3306,
             ) as mydb:
                 with mydb.cursor() as mycursor:
-                    sql = "SELECT * FROM document WHERE num_document = %s ORDER BY date_document ASC"
-                    logging.info(f"Retrieving data for index: {self.index}")
-                    mycursor.execute(sql, (self.index,))
+                    sql = "SELECT * FROM document WHERE nom_document LIKE %s LIMIT 10"
+                    mycursor.execute(sql, (f"%{value}%",))
+                    result = mycursor.fetchall()
+                    return result
+        except Error as err:
+            logging.error(f"Database error: {err}")
+            return ()
+        except Exception as ex:
+            logging.error(f"Unexpected error in search: {ex}")
+            return ()
+
+    def retrieve_data_server(self) -> tuple:
+        from mysql.connector import Error, connect
+        try:
+            with connect(
+                user="academic_togetherme",
+                password="5279abd1804fbed3cd683f591a5b51001acc32f2",
+                host="72con.h.filess.io",
+                database="academic_togetherme",
+                port=3306,
+            ) as mydb:
+                with mydb.cursor() as mycursor:
+                    sql = "SELECT * FROM document ORDER BY date_document DESC LIMIT 10"
+                    mycursor.execute(sql)
                     myresult = mycursor.fetchall()
                     return myresult
-        except mysql.connector.Error as err:
+
+        except Error as err:
             logging.error(f"Database error: {err}")
             return ()
         except Exception as ex:
@@ -112,8 +193,9 @@ class sql_data:
             return ()
 
     def upload_document_ftp(self, path, nom):
+        from ftplib import all_errors, FTP
         try:
-            with ftplib.FTP("ftpupload.net", "if0_37999130", "KTihAaTOhwN") as ftp_server:
+            with FTP("ftpupload.net", "if0_37999130", "KTihAaTOhwN") as ftp_server:
                 ftp_server.encoding = "utf-8"
                 new_filename = self.temp_file_id + "." + nom.split(".")[-1]
                 new_path = os.path.join(os.path.dirname(path), new_filename)
@@ -131,21 +213,22 @@ class sql_data:
 
                 ftp_server.dir()
                 logging.info("File uploaded to FTP server successfully.")
-        except ftplib.all_errors as e:
+        except all_errors as e:
             logging.error(f"FTP error: {e}")
             raise
         except Exception as e:
             logging.error(f"Error during file upload: {e}")
             raise
 
-    def save_like(self, e, nom, desc, lien):
+    def save_like(self, e, id, nom, desc, lien):
+        from tool_fold import file_manager
         try:
             fs = file_manager.FileSystem()
             like_icon = e.control.content
 
             if like_icon.color == "#dcdcdc":
                 like_icon.color = "#db025e"
-                fs.app_csv("assets/user_data/liked.csv", [fs.uniq_id(), nom, desc, lien])
+                fs.app_csv("assets/user_data/liked.csv", [id, nom, desc, lien])
             else:
                 like_icon.color = "#dcdcdc"
                 ligne = fs.search_line_csv("assets/user_data/liked.csv", lien)
@@ -155,61 +238,94 @@ class sql_data:
         except Exception as ex:
             logging.error(f"Error in save_like: {ex}")
 
-    def add_new_label(self, e, etiquette_data):
-        for i in range(3):
-            try:
-                value_retrieved = self.retrieve_data_server()
-                self.index += 1
 
-                if not value_retrieved:
-                    logging.info("No more data to retrieve.")
-                    self.index -= 1
-                    return
+    def add_new_label(self, e, data, etiquette_data, load, is_value_given):
+        from tool_fold import file_manager
+        logging.info(f"New label data: {data} - is given {is_value_given}")
 
-                logging.info(f"Retrieved data: {value_retrieved}")
+        load.visible = True
+        print(load)
 
-                for i in range(len(value_retrieved[0])):
-                    logging.info(f"{i}: {value_retrieved[0][i]}")
+        try:
+            fs = file_manager.FileSystem()
+            i_turn = 3
+            if not fs:
+                logging.error("FileSystem object could not be initialized.")
+                return
 
-                like_icon = ft.Icon(name=ft.icons.FAVORITE, color="#dcdcdc", size=40)
+            if is_value_given:
+                i_turn = len(data)
 
-                nv_label = ft.Container(
-                    content=ft.Row(
-                        [
-                            ft.Column(
-                                controls=[
-                                    ft.Text(value_retrieved[0][1], size=18, weight=ft.FontWeight.BOLD),
-                                    ft.Text(value_retrieved[0][2], size=15),
-                                    ft.Text(
-                                        f"{value_retrieved[0][3]}B • {value_retrieved[0][7]}",
-                                        size=12,
-                                        color="#d2dbe3",
-                                    ),
-                                    ft.Text(f"Par {value_retrieved[0][5]}", size=11, color="#5af979"),
-                                ]
-                            ),
-                            ft.Container(
-                                content=like_icon,
-                                on_click=lambda e, title=value_retrieved[0][1], desc=value_retrieved[0][2], url=f"https://academic-weapon.rf.gd/com_docs/{value_retrieved[0][0]}.{value_retrieved[0][7]}":
-                                self.save_like(e, title, desc, url),
-                            ),
-                        ],
-                        alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
-                    ),
-                    padding=15,
-                    border_radius=7,
-                    on_click=lambda e: print("Clickable without Ink clicked!"),
-                )
+            for i in range(i_turn):
+                try:
+                    if not is_value_given:
+                        data = self.retrieve_data_server()
+                        self.index += 1
 
-                if hasattr(etiquette_data, "controls"):
+                        if not data:
+                            logging.info("No more data to retrieve.")
+                            self.index -= 1
+                            return
+
+                    # Skip if the item is already in liked.csv
+                    if fs.is_present_csv("assets/user_data/liked.csv", data[i][0]):
+                        logging.info(f"Item {data[i][0]} already exists in liked.csv. Skipping.")
+                        continue
+
+                    like_icon = ft.Icon(name=ft.icons.FAVORITE, color="#dcdcdc", size=40)
+
+                    # Create the label with bounce animation
+                    nv_label = ft.Container(
+                        content=ft.Row(
+                            [
+                                ft.Column(
+                                    controls=[
+                                        ft.Text(data[i][1], size=18, weight=ft.FontWeight.BOLD),
+                                        ft.Text(data[i][2], size=15),
+                                        ft.Text(
+                                            f"{data[i][3]}B • {data[i][7]}",
+                                            size=12,
+                                            color="#d2dbe3",
+                                        ),
+                                        ft.Text(f"Par {data[i][5]}", size=11, color="#5af979"),
+                                    ]
+                                ),
+                                ft.Container(
+                                    content=like_icon,
+                                    on_click=lambda e, title=data[i][1], desc=data[i][2], url=f"https://academic-weapon.rf.gd/com_docs/{data[i][0]}.{data[i][7]}", id=data[i][0]:
+                                    self.save_like(e, id, title, desc, url),
+                                    scale=ft.transform.Scale(scale=1),
+                                    animate_scale=ft.animation.Animation(800, ft.AnimationCurve.BOUNCE_OUT),
+                                ),
+                            ],
+                            alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                        ),
+                        padding=15,
+                        border_radius=7,
+                        on_click=lambda e, i=i: self.show(e, data[i][1], data[i][2], data[i][7], data[i][3] + "_" + data[i][5]),
+                        scale=ft.transform.Scale(scale=0),  # Start with scale 0 for animation
+                        animate_scale=ft.animation.Animation(800, ft.AnimationCurve.BOUNCE_OUT),
+                    )
+
+                    # Add the label to the UI
                     etiquette_data.controls.append(nv_label)
                     etiquette_data.controls.append(ft.Divider(height=10, color="white", thickness=3))
-                    e.page.update()
-                else:
-                    logging.error("Error: Invalid etiquette_data structure.")
-            except Exception as ex:
-                logging.error(f"An error occurred in add_new_label: {ex}")
 
+                    nv_label.scale = 1
+                    e.page.update()
+
+                    logging.info(f"click show {data[i][1], data[i][2], data[i][7], data[i][3] + '_' + data[i][5]}")
+
+                except Exception as ex1:
+                    logging.error(f"An error occurred (probably out of range) in add_new_label: {ex1}")
+                    break
+
+        except Exception as ex:
+            logging.error(f"An error occurred in add_new_label: {ex}")
+
+        finally:
+            load.visible = False
+            e.page.update()
 
 def communaute(router_data: Union[str, None] = None):
     etiquette = sql_data()
@@ -243,6 +359,7 @@ def communaute(router_data: Union[str, None] = None):
             file_path.update()
 
     def handle_upload(e):
+        from traceback import print_exc
         if 'path' not in selected_file or not os.path.exists(selected_file['path']):
             logging.error("No file selected or file path is invalid!")
             e.page.snack_bar = ft.SnackBar(
@@ -253,19 +370,15 @@ def communaute(router_data: Union[str, None] = None):
             return
 
         try:
-            # Show loading indicator
             e.page.splash = ft.ProgressBar()
             e.page.update()
 
-            # Upload file data to the database
             etiquette.upload_document_db(titre.value, description.value, selected_file['path'])
             logging.info("File data uploaded to database.")
 
-            # Upload file to the FTP server
             etiquette.upload_document_ftp(selected_file['path'], selected_file['name'])
             logging.info("File uploaded to FTP server.")
 
-            # Close the upload alert and show success message
             e.page.close(upload_alert)
             e.page.snack_bar = ft.SnackBar(
                 ft.Text("Le fichier a bien été uploadé")
@@ -273,7 +386,7 @@ def communaute(router_data: Union[str, None] = None):
             e.page.snack_bar.open = True
         except Exception as ex:
             logging.error(f"Error during upload: {ex}")
-            traceback.print_exc()
+            print_exc()
             e.page.snack_bar = ft.SnackBar(
                 ft.Text(f"Il y a eu une erreur dans l'upload, retentez plus tard: {ex}")
             )
@@ -285,12 +398,18 @@ def communaute(router_data: Union[str, None] = None):
 
     pick_files_dialog = ft.FilePicker(on_result=on_file_pick_result)
 
+    def close_and_send(e):
+        e.page.close(upload_alert)
+        etiquette.send_data(e, "/about")
+
     def setup_file_picker(page):
         try:
             if pick_files_dialog not in page.overlay:
                 page.overlay.append(pick_files_dialog)
         except Exception as ex:
             logging.error(f"Error in setup_file_picker: {ex}")
+
+
 
     titre = ft.TextField(
         label="Titre",
@@ -353,6 +472,14 @@ def communaute(router_data: Union[str, None] = None):
         except Exception as ex:
             logging.error(f"Error in handle_close: {ex}")
 
+    search = ft.SearchBar(
+        view_elevation=2,
+        divider_color=ft.Colors.AMBER,
+        bar_hint_text="Chercher des documents...",
+        on_change=lambda e: print("Search:", e.control.value),
+        width=280,
+    )
+
     upload_alert = ft.AlertDialog(
         modal=True,
         title=ft.Text("Upload"),
@@ -365,7 +492,13 @@ def communaute(router_data: Union[str, None] = None):
                     file_pick_button,
                     file_path,
                     tos,
-                    ft.Text("Consulter les C.U", size=15, color="#0689ff"),
+                    ft.TextButton(
+                        "Consulter les C.U",
+                        on_click=lambda e: close_and_send(e),
+                        style=ft.ButtonStyle(
+                            color="#0689ff",
+                        )
+                    ),
                 ],
                 spacing=15,
             )
@@ -400,15 +533,21 @@ def communaute(router_data: Union[str, None] = None):
         scroll=ft.ScrollMode.AUTO,
         expand=True,
     )
+    load = ft.ProgressRing(width=36, height=36, stroke_width = 5, visible=False)
 
     content = ft.Container(
         content=ft.Column(
             controls=[
-                ft.SearchBar(
-                    view_elevation=4,
-                    divider_color=ft.Colors.AMBER,
-                    bar_hint_text="Chercher des documents...",
-                    on_change=lambda e: print("Search:", e.control.value),
+                ft.Row(
+                    controls=[
+                        search,
+                        ft.IconButton(
+                            icon=ft.Icons.SEARCH,
+                            icon_color="#FFFFFF",
+                            icon_size=20,
+                            on_click=lambda e: etiquette.handle_search(e, search.value, etiquette_data, load)
+                        )
+                    ],
                 ),
                 ft.Text(
                     "Document récents de la communauté",
@@ -432,11 +571,19 @@ def communaute(router_data: Union[str, None] = None):
                 ft.Divider(height=10, color="white", thickness=3),
                 etiquette_data,
 
-                ft.Row(
+
+                ft.ResponsiveRow(
                     controls=[
+                        ft.Row(
+                            [
+                              load,
+                            ],
+                            alignment=ft.MainAxisAlignment.CENTER,
+                            height=100,
+                        ),
                         ft.FilledButton(
                             text="Chargez plus de contenu",
-                            on_click=lambda e: etiquette.add_new_label(e, etiquette_data),
+                            on_click=lambda e: etiquette.add_new_label(e, etiquette, etiquette_data, load, False),
                             width=220,
                             height=45,
                             style=ft.ButtonStyle(

@@ -1,15 +1,12 @@
-import os
+
 from pathlib import Path
 import os.path, time
-import datetime
-import random
-import ftplib
+
 import csv
 
 
 class FileSystem:
     def __init__(self):
-        # Use an external directory or fallback to the current directory
         self.base_path = self.get_external_storage_directory()
         self.equivalent_mo = {
             'Jan': 1,
@@ -20,7 +17,7 @@ class FileSystem:
             'Jun': 6,
             'Jul': 7,
             'Aug': 8,
-            'Sep': 9, 
+            'Sep': 9,
             'Oct': 10,
             'Nov': 11,
             'Dec': 12
@@ -33,6 +30,7 @@ class FileSystem:
 
 
     def get_external_storage_directory(self) -> Path:
+        import os
         if("ANDROID_BOOTLOGO" in os.environ):
             storage_dir = ""
             return Path(storage_dir)
@@ -42,46 +40,47 @@ class FileSystem:
             storage_dir = ""
         return Path(storage_dir)
 
-    
+
     def get_file_path(self, filename: str) -> Path:
-        if("ANDROID_BOOTLOGO" in os.environ):            
+        import os
+        if("ANDROID_BOOTLOGO" in os.environ):
             return self.base_path / filename
         else:
             print(f"base path {self.base_path / ("src/" + filename)}")
             return self.base_path / ("src/" + filename)
 
     def download(self, url):
-        # Fill Required Information
+        import ftplib
         HOSTNAME = "ftpupload.net"
         USERNAME = "if0_37999130"
         PASSWORD = "KTihAaTOhwN"
-        
+
         try:
             # Connect to the FTP server
             ftp_server = ftplib.FTP(HOSTNAME, USERNAME, PASSWORD)
             ftp_server.encoding = "utf-8"
-            
+
             # Extract the filename from the URL
             filename = url.split("/")[-1]
             filename = filename.replace("\n", "")  # Clean the filename
-            
+
             # Navigate to the target directory on the FTP server
             ftp_server.cwd('htdocs')
             ftp_server.cwd('com_docs')
-            
+
             # Define the local download path
             download_dir = "/storage/emulated/0/Download"
             local_file_path = os.path.join(download_dir, filename)
-            
+
             # Ensure the download directory exists
             os.makedirs(download_dir, exist_ok=True)
-            
+
             # Download the file
-            with open(local_file_path, "wb") as file:
+            with open(local_file_path, "wb",encoding='utf-8') as file:
                 ftp_server.retrbinary(f"RETR {filename}", file.write)
-            
+
             print(f"File downloaded successfully: {local_file_path}")
-            
+
         except ftplib.all_errors as e:
             print(f"FTP error occurred: {e}")
         except Exception as e:
@@ -91,7 +90,7 @@ class FileSystem:
                 ftp_server.quit()
 
     def is_empty(self, filename) -> bool:
-        file_path = self.get_file_path(filename)    
+        file_path = self.get_file_path(filename)
         if os.path.getsize(file_path) == 0:
             return True
         return False
@@ -110,7 +109,7 @@ class FileSystem:
                 return [row for row in reader]
         except FileNotFoundError:
             print(f"not foud {FileNotFoundError}")
-            return [] 
+            return []
 
 
     def write_to_file(self, filename: str, content: str) -> str:
@@ -136,6 +135,7 @@ class FileSystem:
             return file.readlines()[line]
 
     def get_last_modified(self):
+        import datetime
         doc_path = self.get_file_path("document/")
         latest_time = datetime.datetime.min  # Initialize to the earliest possible datetime
         latest_path = ""
@@ -154,11 +154,11 @@ class FileSystem:
 
         #print("Latest File Path:", latest_path)
         #print("Latest File Name:", os.path.basename(latest_path))
-        return os.path.basename(latest_path)  
+        return os.path.basename(latest_path)
 
 
-    def append_file(self, value, line, path):    
-        file_path = self.get_file_path(path)        
+    def append_file(self, value, line, path):
+        file_path = self.get_file_path(path)
         with open(file_path, 'r', encoding="utf-8") as file:
             lines = file.readlines()
 
@@ -173,7 +173,7 @@ class FileSystem:
         file_path = self.get_file_path(path)
         with open(file_path, 'r', encoding="utf-8") as file:
             for line in file:
-                if "id," not in line:                
+                if "id," not in line:
                     main.append(line.split(','))
         return main
 
@@ -190,11 +190,12 @@ class FileSystem:
 
     def app_csv(self, path, value):
         file_path = self.get_file_path(path)
-        with open(file_path, 'a', newline='', encoding="utf-8") as fileTemp:  
+        with open(file_path, 'a', newline='', encoding="utf-8") as fileTemp:
             csvwriter = csv.writer(fileTemp)
             csvwriter.writerow(value)
 
     def uniq_id(self):
+        import random
         return ''.join(random.choice(self.char) for _ in range(10))
 
     def search_line_csv(self, path, value):
@@ -203,10 +204,10 @@ class FileSystem:
             with open(file_path, mode='r', encoding='utf-8') as file_csv:
                 csv_file = csv.reader(file_csv)
                 for i, lines in enumerate(csv_file):
-                    if len(lines) > 0 and lines[0] == value[0] or value in lines: 
+                    if len(lines) > 0 and lines[0] == value[0] or value in lines:
                         #horrible mais peut fonctionner
                         return i
-                return -1 
+                return -1
         except FileNotFoundError:
             raise FileNotFoundError(f"File not found: {file_path}")
         except Exception as e:
@@ -239,7 +240,7 @@ class FileSystem:
 
                 if line_number < 1 or line_number > len(reader):
                     raise IndexError(f"line_number {line_number} is out of bounds for the file with {len(reader)} rows.")
-                
+
                 reader[line_number - 1] = new_row
 
             with open(file_path, mode='w', newline='', encoding='utf-8') as outfile:
@@ -251,3 +252,21 @@ class FileSystem:
         except Exception as e:
             raise RuntimeError(f"Error processing file: {file_path}") from e
 
+    def is_present_csv(self, file, value):
+        file_path = self.get_file_path(file)
+        with open(file_path, mode='r', encoding='utf-8') as f:
+            file_csv = csv.reader(f)
+            for line in file_csv:
+                if value == line[0]:
+                    print(f"TRUE {line[0]} == {value}")
+                    return True
+        return False
+
+    def add_xp(self,value):
+        try:
+            file_path = self.get_file_path("assets/user_data/user_log.txt")
+            old_xp = int(self.read_given_line(file_path, 3))
+            self.append_file(str(value + old_xp), 3, file_path)
+
+        except:
+            print("error while recup xp")

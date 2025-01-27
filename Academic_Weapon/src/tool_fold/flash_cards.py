@@ -1,7 +1,6 @@
 import flet as ft
 from . import file_manager
 from random import choice, randint
-import csv
 
 def flash_cards(router):
     def load_flash_cards():
@@ -29,6 +28,7 @@ def flash_cards(router):
     def create_card(question_text, response_text, card_id=None, save_to_csv=True):
         """Create a new flash card and add it to the page."""
         def get_random_hex_color():
+            from random import choice
             return '#' + ''.join([choice('0123456789ABCDEF') for _ in range(6)])
 
         couleur_fond = get_random_hex_color()
@@ -69,6 +69,7 @@ def flash_cards(router):
                         icon_color="#FFFFFF",
                         top=5,
                         right=5,
+                        animate_scale=ft.Animation(duration=300, curve=ft.AnimationCurve.EASE_IN_OUT),
                     ),
                 ],
             ),
@@ -78,6 +79,7 @@ def flash_cards(router):
             border_radius=10,
             on_click=flip_card,
             padding=15,
+            animate_scale=ft.Animation(duration=300, curve=ft.AnimationCurve.EASE_IN_OUT),
         )
 
         cards_column.controls.append(card)
@@ -85,6 +87,7 @@ def flash_cards(router):
             save_flash_card_to_csv(card_id, question_text, response_text)
 
     def add_new_card(e):
+        from random import randint
         fs = file_manager.FileSystem()
         fs.append_file(randint(8, 13), 3, 'assets/user_data/user_log.txt')  # Add XP
         create_card(question.value, response.value, save_to_csv=True)
@@ -128,8 +131,16 @@ def flash_cards(router):
         actions=[
             ft.Row(
                 [
-                    ft.TextButton("OK", on_click=add_new_card),
-                    ft.TextButton("Annuler", on_click=handle_close),
+                    ft.TextButton(
+                        "OK",
+                        on_click=add_new_card,
+                        animate_scale=ft.Animation(duration=300, curve=ft.AnimationCurve.EASE_IN_OUT),
+                    ),
+                    ft.TextButton(
+                        "Annuler",
+                        on_click=handle_close,
+                        animate_scale=ft.Animation(duration=300, curve=ft.AnimationCurve.EASE_IN_OUT),
+                    ),
                 ],
                 alignment=ft.MainAxisAlignment.END,
             )
@@ -148,6 +159,7 @@ def flash_cards(router):
             overlay_color="#0080ff",
             shape=ft.RoundedRectangleBorder(radius=7),
         ),
+        animate_scale=ft.Animation(duration=300, curve=ft.AnimationCurve.EASE_IN_OUT),
     )
 
     # Column to hold the cards

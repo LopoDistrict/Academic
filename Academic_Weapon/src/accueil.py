@@ -2,21 +2,23 @@ import flet as ft
 from typing import Union
 from tool_fold.Router import Router, DataStrategyEnum
 from State import global_state, State
-import time
 import datetime
-import math
 from tool_fold import file_manager
-from random import randint
-
+from random import randint, choice
 
 def send_data(e, target_page):
-    time.sleep(0.1)
+    from time import sleep
+    sleep(0.1)
+    titles = {"/feed": 0, "/outil": 1, "/pomodoro": 1, "/": 2, "/about": 2, "/communaute": 3, "/librairie": 4}
+
+    e.page.navigation_bar.selected_index = titles[target_page]
     e.page.go(target_page)
     e.page.update()
 
 def is_nv_streak():
+    from random import randint
     fs = file_manager.FileSystem()
-    
+
     last_connection_str = fs.read_given_line("assets/user_data/user_log.txt", 2).strip()
     last_connection = datetime.datetime.strptime(last_connection_str, "%Y/%m/%d")
 
@@ -27,7 +29,6 @@ def is_nv_streak():
 
     days_diff = (actual_date - last_connection.date()).days
 
-    
     if days_diff >= 2:
         fs.append_file("0", 0, "assets/user_data/user_log.txt")
         return "0"
@@ -36,31 +37,44 @@ def is_nv_streak():
         new_streak = anc + 1
         fs.append_file(str(new_streak), 0, "assets/user_data/user_log.txt")
         old_xp = fs.read_given_line('assets/user_data/user_log.txt', 3)
-        
-        fs.append_file(int(old_xp) + randint(9,15), 3, 'assets/user_data/user_log.txt') #on lui ajoute de l'xp
-        
+
+        fs.append_file(str(int(old_xp) + randint(9, 15)), 3, 'assets/user_data/user_log.txt')  # on lui ajoute de l'xp
+
         return new_streak
     else:
         return anc
-    
-    
-def accueil(router_data: Union[Router, str, None] = None):
 
+def bounce_animation(e):
+    from time import sleep
+    # Animate scaling up
+    e.control.scale = 1.2
+    e.control.update()
+
+    # Wait for a short duration
+    sleep(0.1)
+
+    # Animate scaling back down
+    e.control.scale = 1.0
+    e.control.update()
+
+def accueil(router_data: Union[Router, str, None] = None):
     def get_level(e=None):
         fs = file_manager.FileSystem()
         exp = int(fs.read_given_line("assets/user_data/user_log.txt", 3))
         exp_value = (0, 15, 35, 55, 75, 100, 250, 310, 480, 560, 700, 820, 1000, 1780, 2100, 2690, 3100, 4850, 6013)
+        grade = ("barabare capable", "guerrier savant", "magicien intelligent", "mousquetaire averti", "Hallebardier éduqué",
+            "saltinbamque doué", "évêque précheur", "Chewa savant", "paladin perspicace", "amazone clairvoyante", "janissaires doué", "tsar instruit",
+            "sultan éclairé", "Danseur de l'ombre senior", "Invocateur réfléchi", "fou ordonné", "malin génie","démon malin"
+            "puissance divine raisonnable", "È›g?œÆ'sd¸a19‹ˆoP$¾Þ!  ¸ä½€‚†£Jã«ò«F")
         for i in range(len(exp_value)):
             if exp >= exp_value[i]:
                 if i + 1 < len(exp_value) and exp >= exp_value[i + 1]:
                     continue
                 else:
-                    fs.append_file(str(i + 1), 4, "assets/user_data/user_log.txt")
+                    fs.append_file(str(i + 1) + "-" + grade[i], 4, "assets/user_data/user_log.txt")
                     if e:
                         e.page.open(streak_bottom)
                     return i + 1
-
-                    
 
     fs = file_manager.FileSystem()
     streak_bottom = ft.BottomSheet(
@@ -71,11 +85,13 @@ def accueil(router_data: Union[Router, str, None] = None):
                 tight=True,
                 controls=[
                     ft.Text(
-                        "L'experience (ou xp) s'acquiet avec le temps et le travail, plus vous vous connectez et travaillez plus vous en gagnez.",
+                        "L'experience (ou xp) s'acquiet avec le temps et le travail, plus vous vous connectez et travaillez plus vous en gagnez. A la longue vous obteindrez un grade.",
                         size=15,
                     ),
                     ft.ElevatedButton(
-                        "Fermer", on_click=lambda e: e.page.close(streak_bottom)
+                        "Fermer",
+                        on_click=lambda e: (bounce_animation(e), e.page.close(streak_bottom)),
+                        animate_scale=ft.Animation(duration=300, curve=ft.AnimationCurve.EASE_IN_OUT),
                     ),
                 ],
             ),
@@ -94,20 +110,23 @@ def accueil(router_data: Union[Router, str, None] = None):
                         size=15,
                     ),
                     ft.ElevatedButton(
-                        "Fermer", on_click=lambda e: e.page.close(work_streak)
+                        "Fermer",
+                        on_click=lambda e: (bounce_animation(e), e.page.close(work_streak)),
+                        animate_scale=ft.Animation(duration=300, curve=ft.AnimationCurve.EASE_IN_OUT),
                     ),
                 ],
             ),
         ),
     )
 
-    # Ensure get_level is called when the page is accessed
+    from random import choice
     get_level()
+
 
     x = datetime.datetime.now()
     hour = int(x.strftime("%H"))
     if 8 <= hour <= 12:
-        value_hour = "Bonjour " 
+        value_hour = "Bonjour "
     elif 12 <= hour <= 18:
         value_hour = "Bon Après midi "
     else:
@@ -116,10 +135,28 @@ def accueil(router_data: Union[Router, str, None] = None):
     val_temp = is_nv_streak()
 
     # Main content
+    matieres = ("maths", "bio", "info", "medecine", "anglais", "géo", "éco", "droit", "chimie", "philo")
     content = ft.Container(
-        ft.Column(
+        content=ft.Column(
             [
-                ft.Text(value_hour + fs.read_given_line("assets/user_data/user_log.txt", 5), size=30, weight=ft.FontWeight.BOLD),
+                ft.ResponsiveRow(
+                    controls=[
+                        ft.Column(
+                            controls=[
+                                ft.IconButton(
+                                    icon=ft.icons.INFO_OUTLINED,
+                                    icon_color="#FFFFFF",
+                                    icon_size=20,
+                                    on_click=lambda e: (bounce_animation(e), send_data(e, "/about")),
+                                    animate_scale=ft.Animation(duration=300, curve=ft.AnimationCurve.EASE_IN_OUT),
+                                ),
+                                ft.Text(value_hour + fs.read_given_line("assets/user_data/user_log.txt", 5), size=30, weight=ft.FontWeight.BOLD),
+                            ],
+                        ),
+                    ],
+                    spacing=0,
+                ),
+
                 ft.Container(
                     content=ft.Row(
                         [
@@ -128,19 +165,19 @@ def accueil(router_data: Union[Router, str, None] = None):
                                 name=ft.icons.LOCAL_FIRE_DEPARTMENT,
                                 color="#e50000",
                                 size=35,
-                            ),                            
+                            ),
                             ft.Text(f"{val_temp}", size=19, weight=ft.FontWeight.BOLD),
-                            work_streak,
                         ],
                         spacing=20,
                         vertical_alignment=ft.CrossAxisAlignment.CENTER,
                     ),
-                    on_click=lambda e: e.page.open(work_streak),
+                    on_click=lambda e: (bounce_animation(e), e.page.open(work_streak)),
                     height=60,
                     bgcolor="#0080ff",
                     padding=ft.padding.only(left=10),
+                    animate_scale=ft.Animation(duration=300, curve=ft.AnimationCurve.EASE_IN_OUT),
                 ),
-                #ft.Divider(height=1, color="white"),
+                ft.Divider(height=20, color="transparent"),
                 ft.Container(
                     content=ft.ResponsiveRow(
                         [
@@ -148,19 +185,22 @@ def accueil(router_data: Union[Router, str, None] = None):
                             ft.Text("Renforcez vos connaissances et capacités avec le Feed, s'échauffer sur: "),
                             ft.OutlinedButton(
                                 icon=ft.icons.AUTO_STORIES,
-                                text="Cryptographie",
-                                on_click=lambda e: send_data(e, "/feed"),
+                                text=choice(matieres),
+                                on_click=lambda e: (bounce_animation(e), send_data(e, "/feed")),
                                 height=50,
                                 style=ft.ButtonStyle(
                                     shape=ft.RoundedRectangleBorder(radius=10),
                                     overlay_color="#1d5384",
                                     color="#FFFFFF",
                                 ),
+                                animate_scale=ft.Animation(duration=300, curve=ft.AnimationCurve.EASE_IN_OUT),
                             ),
                         ]
                     ),
                 ),
-                #ft.Divider(height=1, color="white"),
+                # Spacing between containers
+                ft.Divider(height=20, color="transparent"),  # Add spacing
+                # Work Time Container
                 ft.Container(
                     content=ft.ResponsiveRow(
                         [
@@ -177,13 +217,14 @@ def accueil(router_data: Union[Router, str, None] = None):
                             ft.OutlinedButton(
                                 icon=ft.icons.ACCESS_TIME,
                                 text="Continuer à travailler",
-                                on_click=lambda e: send_data(e, "/pomodoro"),
+                                on_click=lambda e: (bounce_animation(e), send_data(e, "/pomodoro")),
                                 height=50,
                                 style=ft.ButtonStyle(
                                     shape=ft.RoundedRectangleBorder(radius=10),
                                     overlay_color="#1d5384",
                                     color="#FFFFFF"
                                 ),
+                                animate_scale=ft.Animation(duration=300, curve=ft.AnimationCurve.EASE_IN_OUT),
                             ),
                         ],
                         spacing=20,
@@ -191,24 +232,26 @@ def accueil(router_data: Union[Router, str, None] = None):
                     ),
                     height=110,
                 ),
-
-                #ft.Divider(height=1, color="white"),
+                # Spacing between containers
+                ft.Divider(height=20, color="transparent"),  # Add spacing
+                # Last Document Container
                 ft.Container(
                     content=ft.ResponsiveRow(
                         [
                             ft.Text("Dernier Document Travaillé ", size=17, weight=ft.FontWeight.BOLD),
                             ft.FilledButton(
                                 text=f"{fs.get_last_modified()}",
-                                icon=ft.icons.INSERT_DRIVE_FILE,                                
+                                icon=ft.icons.INSERT_DRIVE_FILE,
                                 width=60,
                                 height=40,
-                                on_click=lambda e: send_data(e, "/librairie"),
+                                on_click=lambda e: (bounce_animation(e), send_data(e, "/librairie")),
                                 style=ft.ButtonStyle(
                                     shape=ft.RoundedRectangleBorder(radius=10),
                                     color="#FFFFFF",
                                     bgcolor="#3B556D",
                                     overlay_color="#0b70d4",
                                 ),
+                                animate_scale=ft.Animation(duration=300, curve=ft.AnimationCurve.EASE_IN_OUT),
                             ),
                         ],
                         spacing=10,
@@ -216,6 +259,9 @@ def accueil(router_data: Union[Router, str, None] = None):
                     ),
                     height=50,
                 ),
+                # Spacing between containers
+                ft.Divider(height=20, color="transparent"),  # Add spacing
+                # XP and Levels Container
                 ft.Container(
                     content=ft.ResponsiveRow(
                         [
@@ -226,15 +272,20 @@ def accueil(router_data: Union[Router, str, None] = None):
                                 weight=ft.FontWeight.BOLD,
                             ),
                             ft.Text(
-                                f"Niveau: {str(fs.read_given_line('assets/user_data/user_log.txt', 4))}",
+                                f"Niveau: {str(fs.read_given_line('assets/user_data/user_log.txt', 4).split("-")[0])}",
+                                size=15,
+                                weight=ft.FontWeight.BOLD,
+                            ),
+                            ft.Text(
+                                f"Classe: {str(fs.read_given_line('assets/user_data/user_log.txt', 4).split("-")[1])}",
                                 size=15,
                                 weight=ft.FontWeight.BOLD,
                             ),
                             ft.FilledButton(
                                 text="Information à propos de l'xp",
-                                on_click=lambda e: get_level(e),
+                                on_click=lambda e: (bounce_animation(e), e.page.open(streak_bottom)),
+                                animate_scale=ft.Animation(duration=300, curve=ft.AnimationCurve.EASE_IN_OUT),
                             ),
-                            streak_bottom,
                         ],
                     ),
                     border_radius=15,
@@ -243,7 +294,7 @@ def accueil(router_data: Union[Router, str, None] = None):
                     padding=10,
                 ),
             ],
-            spacing=75,
+            spacing=25,  # No spacing between main elements
             horizontal_alignment=ft.CrossAxisAlignment.CENTER,
         ),
         width=400,
@@ -251,6 +302,5 @@ def accueil(router_data: Union[Router, str, None] = None):
         padding=ft.padding.all(10),
         border_radius=20,
     )
-
 
     return content

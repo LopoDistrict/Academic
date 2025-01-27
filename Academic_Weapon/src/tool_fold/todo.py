@@ -1,5 +1,5 @@
 import flet as ft
-import datetime
+
 from . import file_manager
 
 def todo(router):
@@ -169,6 +169,7 @@ def todo(router):
 
 
         def show_date_picker(self, e):
+            import datetime
             x = datetime.datetime.now()
             date_picker = ft.DatePicker(
                 first_date=datetime.datetime(year=x.year, month=1, day=1),
