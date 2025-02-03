@@ -28,6 +28,9 @@ class sql_data:
         self.info_aff = ft.Text(size=15)
         self.type_aff = ft.Text(size=15)
         self.desc_aff = ft.Text(size=14, color="#ababab")
+        self.download = ""
+        self.id = ""
+
 
         self.info = ft.AlertDialog(
             content=ft.Container(
@@ -53,18 +56,71 @@ class sql_data:
                             ],
                             alignment=ft.MainAxisAlignment.CENTER,
                         ),
+                        ft.Row(
+                            [                                
+                                ft.FilledButton(
+                                    icon=ft.Icons.FILE_DOWNLOAD_OUTLINED,
+                                    text="Telecharger",
+                                    on_click=lambda e: (self.handle_download(e, self.download)),
+                                    height=50,
+                                    icon_color="#084fe8",
+                                    style=ft.ButtonStyle(
+                                        shape=ft.RoundedRectangleBorder(radius=15),                                        
+                                        color="#FFFFFF",
+                                        bgcolor="#4b5059",
+                                        
+                                    ),
+                                    animate_scale=ft.Animation(duration=300, curve=ft.AnimationCurve.EASE_IN_OUT),
+                                ),
+                                ft.FilledButton(
+                                    icon=ft.Icons.FAVORITE_BORDER,
+                                    text="Liker",
+                                    on_click=lambda e: (self.save_like(e, self.id, self.title_aff.value, self.desc_aff.value, self.download), ),
+                                    height=50,
+                                    icon_color="#FFFFFF",                                    
+                                    style=ft.ButtonStyle(
+                                        shape=ft.RoundedRectangleBorder(radius=15),                                    
+                                        color="#FFFFFF",
+                                        bgcolor="#de0a0a"
+                                    ),
+                                    animate_scale=ft.Animation(duration=300, curve=ft.AnimationCurve.EASE_IN_OUT),
+                                ),
+                            ]
+                        )
                     ],
-                    height=200,
+                    height=300,
                     spacing=20,
                 ),
             ),
         )
+        
 
-    def show(self ,e , title, desc, type, info):
+    def handle_download(self, e, url):
+        from random import randint
+        from tool_fold import file_manager
+        fs = file_manager.FileSystem()
+        ret = fs.download(url)
+        if ret == -1:
+            e.page.snack_bar = ft.SnackBar(ft.Text("Une erreur est survenue lors du téléchargement"))
+            e.page.snack_bar.open = True
+            e.page.update()
+        else:
+            file_path = "assets/user_data/user_log.txt"
+            old_xp = int(fs.read_given_line(file_path, 3))
+            fs.append_file(str(randint(3, 15) + old_xp), 3, file_path)
+
+            e.page.snack_bar = ft.SnackBar(ft.Text("le fichier a été téléchargé"))
+            e.page.snack_bar.open = True
+            e.page.update()
+
+    def show(self ,e , title, desc, type, info, url, id_v):
         self.title_aff.value = title
-        self.info_aff.value = str(int(info.split("_")[0])/10**6) + "mb " + info.split("_")[1]
+        self.info_aff.value = str(int(info.split("_")[0])/10**6) + " MB " + info.split("_")[1]
         self.type_aff.value = "type de fichier: ."+ type
         self.desc_aff.value = desc
+        self.download = url
+        self.id = id_v
+        
         logging.info(f"title_aff.value {self.title_aff.value}")
         logging.info(f"info_aff.value  {self.info_aff.value}")
         logging.info(f"type_aff.value  {self.type_aff.value}")
@@ -134,7 +190,6 @@ class sql_data:
             raise
 
     def handle_search(self, e, value, etiquette_data, load):
-
         etiquette_data.controls.clear()
         e.page.update()
 
@@ -146,6 +201,7 @@ class sql_data:
             self.add_new_label(e, search_results, etiquette_data, load, True)
         else:
             logging.info("No search results found.")
+
 
     def search(self, value):
         from mysql.connector import Error, connect
@@ -170,20 +226,24 @@ class sql_data:
             return ()
 
     def retrieve_data_server(self) -> tuple:
-        from mysql.connector import Error, connect
+        import mysql.connector
         try:
-            with connect(
+            mydb = mysql.connector.connect(
                 user="academic_togetherme",
                 password="5279abd1804fbed3cd683f591a5b51001acc32f2",
                 host="72con.h.filess.io",
                 database="academic_togetherme",
                 port=3306,
-            ) as mydb:
-                with mydb.cursor() as mycursor:
-                    sql = "SELECT * FROM document ORDER BY date_document DESC LIMIT 10"
-                    mycursor.execute(sql)
-                    myresult = mycursor.fetchall()
-                    return myresult
+            )
+
+            mycursor = mydb.cursor()
+            mycursor.execute(
+                f"SELECT * FROM document WHERE num_document = {self.index} ORDER BY date_document ASC"
+            )
+            myresult = mycursor.fetchall()
+            mydb.close()
+            mycursor.close()
+            return myresult
 
         except Error as err:
             logging.error(f"Database error: {err}")
@@ -191,6 +251,10 @@ class sql_data:
         except Exception as ex:
             logging.error(f"Unexpected error in retrieve_data_server: {ex}")
             return ()
+        finally:
+            mydb.close()
+            mycursor.close()
+        
 
     def upload_document_ftp(self, path, nom):
         from ftplib import all_errors, FTP
@@ -225,16 +289,31 @@ class sql_data:
         try:
             fs = file_manager.FileSystem()
             like_icon = e.control.content
+            try:
+                if like_icon.color == "#dcdcdc":
+                    like_icon.color = "#db025e"
+                    fs.app_csv("assets/user_data/liked.csv", [id, nom, desc, lien])
+                    try:
+                        page.snack_bar = ft.SnackBar(ft.Text("ce document a été sauvegardé - retrouvé le dans la librarie"))
+                        page.snack_bar.open = True
+                        e.page.update()
+                    except:
+                        pass
+                else:
+                    like_icon.color = "#dcdcdc"
+                    ligne = fs.search_line_csv("assets/user_data/liked.csv", lien)
+                    fs.delete_row_csv("assets/user_data/liked.csv", ligne + 1)
 
-            if like_icon.color == "#dcdcdc":
-                like_icon.color = "#db025e"
+                e.page.update()
+
+            except:
                 fs.app_csv("assets/user_data/liked.csv", [id, nom, desc, lien])
-            else:
-                like_icon.color = "#dcdcdc"
-                ligne = fs.search_line_csv("assets/user_data/liked.csv", lien)
-                fs.delete_row_csv("assets/user_data/liked.csv", ligne + 1)
-
-            e.page.update()
+                try:
+                    page.snack_bar = ft.SnackBar(ft.Text("ce document a été sauvegardé - retrouvé le dans la librarie"))
+                    page.snack_bar.open = True
+                    e.page.update()
+                except:
+                    pass
         except Exception as ex:
             logging.error(f"Error in save_like: {ex}")
 
@@ -244,14 +323,10 @@ class sql_data:
         logging.info(f"New label data: {data} - is given {is_value_given}")
 
         load.visible = True
-        print(load)
 
         try:
             fs = file_manager.FileSystem()
-            i_turn = 3
-            if not fs:
-                logging.error("FileSystem object could not be initialized.")
-                return
+            i_turn = 4
 
             if is_value_given:
                 i_turn = len(data)
@@ -259,63 +334,65 @@ class sql_data:
             for i in range(i_turn):
                 try:
                     if not is_value_given:
+                        print(self.index)
                         data = self.retrieve_data_server()
-                        self.index += 1
-
+                        print(data)
+                        
                         if not data:
                             logging.info("No more data to retrieve.")
-                            self.index -= 1
+                            #self.index -= 1
                             return
+                    
+                    self.index += 1
 
-                    # Skip if the item is already in liked.csv
-                    if fs.is_present_csv("assets/user_data/liked.csv", data[i][0]):
-                        logging.info(f"Item {data[i][0]} already exists in liked.csv. Skipping.")
-                        continue
+                    if not fs.is_present_csv("assets/user_data/liked.csv", data[0][0]):
+                        logging.info(f"Item {data[0][0]} already exists in liked.csv. Skipping.")
+                        
+                    
+                        like_icon = ft.Icon(name=ft.icons.FAVORITE, color="#dcdcdc", size=40)
 
-                    like_icon = ft.Icon(name=ft.icons.FAVORITE, color="#dcdcdc", size=40)
+                        nv_label = ft.Container(
+                            content=ft.Row(
+                                [
+                                    ft.Column(
+                                        controls=[
+                                            ft.Text(data[0][1], size=18, weight=ft.FontWeight.BOLD),
+                                            ft.Text(data[0][2], size=15),
+                                            ft.Text(
+                                                f"{data[0][3]}B • {data[0][7]}",
+                                                size=12,
+                                                color="#d2dbe3",
+                                            ),
+                                            ft.Text(f"Par {data[0][5]}", size=11, color="#5af979"),
+                                        ]
+                                    ),
+                                    ft.Container(
+                                        content=like_icon,
+                                        on_click=lambda e, title=data[0][1], desc=data[0][2], url=f"https://academic-weapon.rf.gd/com_docs/{data[0][0]}.{data[0][7]}", id=data[0][0]:
+                                        self.save_like(e, id, title, desc, url),
+                                        scale=ft.transform.Scale(scale=1),
+                                        animate_scale=ft.animation.Animation(800, ft.AnimationCurve.BOUNCE_OUT),
+                                    ),
+                                ],
+                                alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                            ),
+                            padding=15,
+                            border_radius=7,
+                            on_click=lambda e, i=i,  url_link=f"https://academic-weapon.rf.gd/com_docs/{data[0][0]}.{data[0][7]}", titre=data[0][1], desc=data[0][2], type_d=data[0][7], info=data[0][3] + "_" + data[0][5], id_d=data[0][0] : self.show(e, titre, desc, type_d, info, url_link, id_d),
+                            scale=ft.transform.Scale(scale=0),  # Start with scale 0 for animation
+                            animate_scale=ft.animation.Animation(800, ft.AnimationCurve.BOUNCE_OUT),
+                        )
 
-                    # Create the label with bounce animation
-                    nv_label = ft.Container(
-                        content=ft.Row(
-                            [
-                                ft.Column(
-                                    controls=[
-                                        ft.Text(data[i][1], size=18, weight=ft.FontWeight.BOLD),
-                                        ft.Text(data[i][2], size=15),
-                                        ft.Text(
-                                            f"{data[i][3]}B • {data[i][7]}",
-                                            size=12,
-                                            color="#d2dbe3",
-                                        ),
-                                        ft.Text(f"Par {data[i][5]}", size=11, color="#5af979"),
-                                    ]
-                                ),
-                                ft.Container(
-                                    content=like_icon,
-                                    on_click=lambda e, title=data[i][1], desc=data[i][2], url=f"https://academic-weapon.rf.gd/com_docs/{data[i][0]}.{data[i][7]}", id=data[i][0]:
-                                    self.save_like(e, id, title, desc, url),
-                                    scale=ft.transform.Scale(scale=1),
-                                    animate_scale=ft.animation.Animation(800, ft.AnimationCurve.BOUNCE_OUT),
-                                ),
-                            ],
-                            alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
-                        ),
-                        padding=15,
-                        border_radius=7,
-                        on_click=lambda e, i=i: self.show(e, data[i][1], data[i][2], data[i][7], data[i][3] + "_" + data[i][5]),
-                        scale=ft.transform.Scale(scale=0),  # Start with scale 0 for animation
-                        animate_scale=ft.animation.Animation(800, ft.AnimationCurve.BOUNCE_OUT),
-                    )
+                        # Add the label to the UI
+                        etiquette_data.controls.append(nv_label)
+                        etiquette_data.controls.append(ft.Divider(height=10, color="white", thickness=3))
 
-                    # Add the label to the UI
-                    etiquette_data.controls.append(nv_label)
-                    etiquette_data.controls.append(ft.Divider(height=10, color="white", thickness=3))
+                        nv_label.scale = 1
+                        e.page.update()
 
-                    nv_label.scale = 1
-                    e.page.update()
-
-                    logging.info(f"click show {data[i][1], data[i][2], data[i][7], data[i][3] + '_' + data[i][5]}")
-
+                        logging.info(f"click show {data[i][1], data[i][2], data[i][7], data[i][3] + '_' + data[i][5]}")
+                    else:
+                        i_turn += 1
                 except Exception as ex1:
                     logging.error(f"An error occurred (probably out of range) in add_new_label: {ex1}")
                     break

@@ -67,7 +67,9 @@ def librairie(router_data: Union[Router, str, None] = None):
                         text=f"{filename}",
                         width=300,
                         height=40,
-                        on_click=lambda e, fn=filename: (bounce_animation(e), send_data(e, extension_route.get(fn.split('.')[-1], "/librairie"))),
+                        icon_color="#FFFFFF",
+                        #on_click=lambda e, fn=filename: (bounce_animation(e), send_data(e, extension_route.get(fn.split('.')[-1], "/librairie"))),
+                        on_click=lambda e, titre=filename, : (bounce_animation(e), show_info_file(e, filename, filename.split(".")[-1])),
                         style=ft.ButtonStyle(
                             shape=ft.RoundedRectangleBorder(radius=10),
                             color="#FFFFFF",
@@ -95,8 +97,10 @@ def librairie(router_data: Union[Router, str, None] = None):
                     icon=ft.icons.INSERT_DRIVE_FILE,
                     text=doc[1],
                     width=270,
+                    icon_color="#FFFFFF",
                     height=40,
-                    on_click=lambda e, fn=doc[1]: (bounce_animation(e), send_data(e, extension_route.get(fn.split('.')[-1], "/librairie"))),
+                    #on_click=lambda e, fn=doc[1]: (bounce_animation(e), send_data(e, extension_route.get(fn.split('.')[-1], "/librairie"))),
+                    on_click=lambda e, fn=doc[1], url=doc[3], titre=doc[1], : (bounce_animation(e), show_info_file(e, titre, titre.split(".")[-1], url)),
                     style=ft.ButtonStyle(
                         shape=ft.RoundedRectangleBorder(radius=10),
                         color="#FFFFFF",
@@ -106,7 +110,7 @@ def librairie(router_data: Union[Router, str, None] = None):
                     animate_scale=ft.Animation(duration=300, curve=ft.AnimationCurve.EASE_IN_OUT),
                 ),
                 ft.IconButton(
-                    icon=ft.icons.DOWNLOAD,
+                    icon=ft.Icons.FILE_DOWNLOAD_OUTLINED,
                     icon_color="#FFFFFF",
                     on_click=lambda e, url=doc[3]: (bounce_animation(e), handle_download(e, url)),
                     animate_scale=ft.Animation(duration=300, curve=ft.AnimationCurve.EASE_IN_OUT),
@@ -115,8 +119,99 @@ def librairie(router_data: Union[Router, str, None] = None):
         )
         liked_buttons.append(button)
 
-    # Main content
+
+    
+
+    titre = ft.Text(size=15)
+    taille = ft.Text(size=13)
+    type_f = ft.Text(size=13)
+    is_compatible = True
+    can_be_open = ft.Text(size=13)
+
+    open_button = ft.FilledButton(
+        icon=ft.Icons.FILE_DOWNLOAD_OUTLINED,
+        text="Ouvrir",
+        on_click=lambda e: (send_data(e, extension_route.get(fn.split('.')[-1], "/librairie"))),
+        height=50,
+        icon_color="#084fe8",
+        style=ft.ButtonStyle(
+            shape=ft.RoundedRectangleBorder(radius=15),                                        
+            color="#FFFFFF",
+            bgcolor="#4b5059",
+            
+        ),
+        animate_scale=ft.Animation(duration=300, curve=ft.AnimationCurve.EASE_IN_OUT),
+    ),
+
+
+    info = ft.AlertDialog(
+            content=ft.Container(
+                ft.Column(
+                    [
+                        ft.Row(
+                            [
+                                ft.IconButton(
+                                    icon=ft.Icons.CLOSE,
+                                    icon_color="#FFFFFF",
+                                    icon_size=20,
+                                    on_click=lambda e: e.page.close(self.info),
+                                )
+                            ],
+                            vertical_alignment=ft.CrossAxisAlignment.START,
+                            ),
+                            ft.ResponsiveRow(
+                            [
+                                titre,
+                                taille,
+                                type_f,
+
+                            ],
+                            alignment=ft.MainAxisAlignment.CENTER,
+                        ),
+                        ft.Row(
+                            open_button,
+                            ft.FilledButton(
+                                icon=ft.Icons.FILE_DOWNLOAD_OUTLINED,
+                                text="Telecharger",
+                                on_click=lambda e: (handle_download(e, url)),
+                                height=50,
+                                icon_color="#084fe8",
+                                style=ft.ButtonStyle(
+                                    shape=ft.RoundedRectangleBorder(radius=15),                                        
+                                    color="#FFFFFF",
+                                    bgcolor="#4b5059",
+                                    
+                                ),
+                                animate_scale=ft.Animation(duration=300, curve=ft.AnimationCurve.EASE_IN_OUT),
+                            ),                        
+
+                        ),
+                        
+                    ],
+                    height=300,
+                    spacing=20,
+                ),
+            ),
+        )
+
+    def show_info_file(e, titre, typef, url=None):
+        titre_f.value = titre
+        type_f.value = typef
+
+        if is_compatible:
+            can_be_open.value = "Ce fichier peut être ouvert par l'editeur"
+            can_be_open.color = "#fa2e2e"
+            open_button.visible = True
+            
+        else:
+            can_be_open.value = "Ce fichier ne peut pas être ouvert par l'editeur"
+            can_be_open.color = "#5ae40b"
+            open_button.visible = False
+
+        e.page.open(info)
+
     content = ft.Container(
+        info,
         ft.Column(
             [
                 ft.SearchBar(
@@ -126,7 +221,7 @@ def librairie(router_data: Union[Router, str, None] = None):
                     on_change=search,
                     on_submit=search,
                 ),
-                ft.Text("Vos documents", size=20, weight=ft.FontWeight.BOLD),
+                ft.Text("Vos documents 📖", size=20, weight=ft.FontWeight.BOLD),
                 searched,
                 ft.Container(
                     content=ft.Column(
@@ -137,6 +232,7 @@ def librairie(router_data: Union[Router, str, None] = None):
                                 text=f"{fs.get_last_modified()}",
                                 width=270,
                                 height=40,
+                                icon_color="#FFFFFF",
                                 on_click=lambda e, fn=fs.get_last_modified(): (bounce_animation(e), send_data(e, extension_route.get(fn.split('.')[-1], "/librairie"))),
                                 style=ft.ButtonStyle(
                                     shape=ft.RoundedRectangleBorder(radius=10),
@@ -154,7 +250,7 @@ def librairie(router_data: Union[Router, str, None] = None):
                 ft.Container(
                     content=ft.Column(
                         [
-                            ft.Text("Contenus likés", size=20, weight=ft.FontWeight.BOLD),
+                            ft.Text("Contenus likés ", size=20, weight=ft.FontWeight.BOLD),
                             ft.Column(liked_buttons, spacing=10),
                         ]
                     ),

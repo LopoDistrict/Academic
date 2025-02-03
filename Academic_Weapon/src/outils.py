@@ -37,12 +37,15 @@ def outils(router_data: Union[Router, str, None] = None):
                             text="Pomodoro",
                             width=60,
                             height=80,
+                            icon_color="#FFFFFF",
+                                              
                             on_click=lambda e: (bounce_animation(e), send_data(e, "/pomodoro")),
                             style=ft.ButtonStyle(
                                 shape=ft.RoundedRectangleBorder(radius=10),
                                 color="#FFFFFF",
                                 bgcolor="#3974ab",
                                 overlay_color="#0080ff",
+                                
                             ),
                             animate_scale=ft.Animation(duration=300, curve=ft.AnimationCurve.EASE_IN_OUT),
                         ),
@@ -51,6 +54,8 @@ def outils(router_data: Union[Router, str, None] = None):
                             text="Liste à faire",
                             width=60,
                             height=80,
+                            icon_color="#FFFFFF",
+                            
                             on_click=lambda e: (bounce_animation(e), send_data(e, "/todo")),
                             style=ft.ButtonStyle(
                                 shape=ft.RoundedRectangleBorder(radius=10),
@@ -65,6 +70,8 @@ def outils(router_data: Union[Router, str, None] = None):
                             text="Editeur de note Markdown",
                             width=60,
                             height=80,
+                            icon_color="#FFFFFF",
+                            
                             on_click=lambda e: (bounce_animation(e), send_data(e, "/markdown_editor")),
                             style=ft.ButtonStyle(
                                 shape=ft.RoundedRectangleBorder(radius=10),
@@ -79,6 +86,8 @@ def outils(router_data: Union[Router, str, None] = None):
                             text="Flash Cards",
                             width=60,
                             height=80,
+                            icon_color="#FFFFFF",
+                                                     
                             on_click=lambda e: (bounce_animation(e), send_data(e, "/flash_cards")),
                             style=ft.ButtonStyle(
                                 shape=ft.RoundedRectangleBorder(radius=10),
@@ -93,6 +102,8 @@ def outils(router_data: Union[Router, str, None] = None):
                             text="chat/aide IA",
                             width=60,
                             height=80,
+                            icon_color="#FFFFFF",
+                                                
                             on_click=lambda e: (bounce_animation(e), send_data(e, "/feed")),
                             style=ft.ButtonStyle(
                                 shape=ft.RoundedRectangleBorder(radius=10),
@@ -102,11 +113,29 @@ def outils(router_data: Union[Router, str, None] = None):
                             ),
                             animate_scale=ft.Animation(duration=300, curve=ft.AnimationCurve.EASE_IN_OUT),
                         ),
+                         ft.ElevatedButton(
+                            icon=ft.icons.CALENDAR_MONTH,
+                            text="Agenda",
+                            width=60,
+                            height=80,
+                            elevation=100,
+                            icon_color="#FFFFFF",
+                                              
+                            on_click=lambda e: (bounce_animation(e), send_data(e, "/calendar")),
+                            style=ft.ButtonStyle(
+                                shape=ft.RoundedRectangleBorder(radius=10),
+                                color="#FFFFFF",
+                                bgcolor="#3974ab",
+                                overlay_color="#0080ff"
+                            ),
+                            animate_scale=ft.Animation(duration=300, curve=ft.AnimationCurve.EASE_IN_OUT),
+                        ),
                         ft.FilledButton(
                             icon=ft.icons.DRAW,
                             text="Notes en dessin[à venir]",
                             width=60,
                             height=80,
+                            icon_color="#FFFFFF",
                             style=ft.ButtonStyle(
                                 shape=ft.RoundedRectangleBorder(radius=10),
                                 color="#FFFFFF",
@@ -120,6 +149,7 @@ def outils(router_data: Union[Router, str, None] = None):
                             width=60,
                             height=80,
                             elevation=100,
+                            icon_color="#FFFFFF",
                             style=ft.ButtonStyle(
                                 shape=ft.RoundedRectangleBorder(radius=10),
                                 color="#FFFFFF",
@@ -127,19 +157,7 @@ def outils(router_data: Union[Router, str, None] = None):
                             ),
                             animate_scale=ft.Animation(duration=300, curve=ft.AnimationCurve.EASE_IN_OUT),
                         ),
-                        ft.ElevatedButton(
-                            icon=ft.icons.CALENDAR_MONTH,
-                            text="Agenda [à venir]",
-                            width=60,
-                            height=80,
-                            elevation=100,
-                            style=ft.ButtonStyle(
-                                shape=ft.RoundedRectangleBorder(radius=10),
-                                color="#FFFFFF",
-                                bgcolor="#253543",
-                            ),
-                            animate_scale=ft.Animation(duration=300, curve=ft.AnimationCurve.EASE_IN_OUT),
-                        ),
+                       
                     ],
                     run_spacing={"xs": 10},
                     columns=1,

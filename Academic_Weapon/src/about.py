@@ -49,7 +49,7 @@ def about(router_data: Union[Router, str, None] = None):
     Ces conditions d'utilisation sont régies par les lois en vigueur dans le pays où Academic Weapon est établie. Tout litige relatif à l'utilisation de l'application sera soumis à la juridiction compétente des tribunaux de ce pays.
 
     6. Contact
-    Pour toute question ou réclamation concernant ces conditions d'utilisation, veuillez nous contacter à l'adresse suivante : [insérer l'adresse e-mail ou les coordonnées de contact].
+    Pour toute question ou réclamation concernant ces conditions d'utilisation, veuillez nous contacter à l'adresse suivante : kr0k0dilpepper@proton.me.
 
     En utilisant Academic Weapon, vous reconnaissez avoir lu, compris et accepté ces conditions d'utilisation.
 
@@ -91,30 +91,44 @@ Pour nous aider vous pouvez me donnez de l'argent ou en partagez cette app aupr�
                 ),
                 ft.ResponsiveRow(
                     controls=[
+                        ft.OutlinedButton(
+                            text="un petit don? ❤️",
+                            height=40,
+                            width=110,
+                            style=ft.ButtonStyle(
+                                shape=ft.RoundedRectangleBorder(radius=5),
+                                color="#FFFFFF",
+                                bgcolor="#14e30e",
+                            ),
+                            on_click=lambda e: redirection(e, "Accueil")
+                        ),
+                        
                         ft.Row(
                             controls=[
-                                ft.OutlinedButton(
-                                    text="Donnez $",
+                                ft.FilledButton(
+                                    text="Twitter/X",
                                     height=40,
-                                    width=110,
+                                    width=110,                                    
                                     style=ft.ButtonStyle(
-                                        shape=ft.RoundedRectangleBorder(radius=5),
-                                        color="#14e30e",
+                                        shape=ft.RoundedRectangleBorder(radius=5),                                
+                                        color="#FFFFFF",
+                                        bgcolor="#111111"
                                     ),
-                                    on_click=lambda e: redirection(e, "Accueil")
+                                    on_click=lambda e: redirection(e, "https://x.com/Komodooo__")
                                 ),
-                                ft.OutlinedButton(
+                                ft.FilledButton(
                                     text="Site Web ",
                                     height=40,
                                     width=110,
                                     style=ft.ButtonStyle(
                                         shape=ft.RoundedRectangleBorder(radius=5),
-                                        color="#0080ff",
+                                        color="#FFFFFF",
+                                        bgcolor="#0080ff"
                                     ),
                                     on_click=lambda e: redirection(e, "https://academic-weapon.rf.gd")
                                 ),
                             ],
-                            alignment=ft.MainAxisAlignment.CENTER,  # Align buttons in the center
+                            alignment=ft.MainAxisAlignment.CENTER, 
                             spacing=15,
                         ),
                     ],

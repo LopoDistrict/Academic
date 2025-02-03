@@ -3,294 +3,114 @@ from typing import Union
 from tool_fold.Router import Router, DataStrategyEnum
 from State import global_state, State
 from time import time
+from random import choice as rand_pick
+from tool_fold import file_manager
+from huggingface_hub import InferenceClient
 
-class AIApp(ft.UserControl):
-    def __init__(self):
-        super().__init__()
-        self.choice = "libre"
-        self.libre = (
-            "Explique moi les matrices inversibles", "Parle moi du Droit international public",
-            "Synthétise moi le conflit en Ukraine", "explique moi les Mathématiques appliquées", "Résume moi la Chimie organique",
-            "Explique avec exemple l'Intelligence artificielle appliquée"
-        )
-        self.Questions = (
-            "cryptographie", "Droit des affaires", "Introduction au droit européen", "c++", "Biologie moléculaire",
-            "Finance d'entreprise", "Économie internationale", "Économie du développement"
-        )
-        self.resume = (
-            "algorithme de dichotomie", "mécanique des fluides", "histologie-embryologie", "Biologie cellulaire", "Réseaux de neurones",
-            "Économie micro", "Anthropologie", "Génétique", "Psychologie du développement"
-        )
-        self.exercice = (
-            "pivot de Gauss", "droit des personnes", "Matrice de permutation", "Physique des particules", "Chimie physique",
-            "Physique des plasmas", "Biologie des populations"
-        )
-        self.value = ""
-        self.interactive_reponse = ft.Markdown()
-        self.response_text = ft.Markdown()
-        self.study_feed = ft.Column()
-        self.current_study_index = 0
-        self.start_y = None
-        self.last_call_time = time()
-        self.min_delay = 5
-        self.is_swiping = False
-        self.q1 = ft.OutlinedButton()
-        self.q2 = ft.OutlinedButton()
-        self.q3 = ft.OutlinedButton()
-        self.q4 = ft.OutlinedButton()
-        self.reponse_value = ft.Text(color="#0080ff")
-        self.next_q = ft.FilledButton()
+def feed(router_data: Union[Router, str, None] = None):
+    choice = "libre"
+    libre = (
+        "Explique moi les matrices inversibles", "Parle moi du Droit international public",
+        "Synthétise moi le conflit en Ukraine", "explique moi les Mathématiques appliquées", "Résume moi la Chimie organique",
+        "Explique avec exemple l'Intelligence artificielle appliquée"
+    )
+    Questions = (
+        "cryptographie", "Droit des affaires", "Introduction au droit européen", "c++", "Biologie moléculaire",
+        "Finance d'entreprise", "Économie internationale", "Économie du développement"
+    )
+    resume = (
+        "algorithme de dichotomie", "mécanique des fluides", "histologie-embryologie", "Biologie cellulaire", "Réseaux de neurones",
+        "Économie micro", "Anthropologie", "Génétique", "Psychologie du développement"
+    )
+    exercice = (
+        "pivot de Gauss", "droit des personnes", "Matrice de permutation", "Physique des particules", "Chimie physique",
+        "Physique des plasmas", "Biologie des populations"
+    )
+    value = rand_pick(libre)
+    interactive_reponse = ft.Markdown()
+    response_text = ft.Markdown()
+    study_feed = ft.Column()
+    current_study_index = 0
+    start_y = None
+    last_call_time = time()
+    min_delay = 5
+    is_swiping = False
+    fs = file_manager.FileSystem()
 
-        self.smart = ft.Container(
-            ft.GestureDetector(
-                content=ft.Column(
-                    [self.interactive_reponse],
-                    scroll=ft.ScrollMode.AUTO,
-                    expand=True,
-                ),
-                on_pan_start=self.handle_pan_start,
-                on_pan_update=self.handle_pan_update,
-                on_pan_end=self.handle_pan_end,
-            ),
-            expand=True,
-            visible=False,
-            height=400,
-            padding=10,
-        )
+    def handle_pan_start(e: ft.DragStartEvent):
+        nonlocal start_y, is_swiping
+        start_y = e.local_y
+        is_swiping = True
 
-        self.reponse = ft.Container(
-            ft.Column([self.response_text], scroll=ft.ScrollMode.AUTO),
-            height=400,
-            padding=10,
-            border_radius=5,
-            expand=True,
-            visible=True
-        )
-
-        self.niveaux = ft.Dropdown(
-            width=225,
-            hint_text="Entrez votre niveau",
-            options=[
-                ft.dropdown.Option("Débutant"),
-                ft.dropdown.Option("Intermédiaire"),
-                ft.dropdown.Option("Difficile"),
-                ft.dropdown.Option("Très difficile"),
-                ft.dropdown.Option("Très Avancé"),
-                ft.dropdown.Option("Le plus compliqué"),
-            ],
-        )
-
-        self.themes = ft.TextField(
-            label="Themes ex(cryptographie,méca. fluide)", expand=True, border=ft.InputBorder.UNDERLINE, max_lines=3,
-            border_color="#FFFFFF", border_width=2
-        )
-
-        self.explication = ft.BottomSheet(
-            dismissible=True,
-            content=ft.Container(
-                padding=50,
-                content=ft.Column(
-                    tight=True,
-                    controls=[
-                        ft.Text(
-                            "Ces informations sont collectées pour affiner notre IA afin de pouvoir vous proposez du contenu plus adapté et intéressant",
-                            size=15,
-                        ),
-                        ft.ElevatedButton(
-                            "Fermer", on_click=lambda e: e.page.close(self.explication)
-                        ),
-                    ],
-                ),
-            ),
-        )
-
-        self.first_time = ft.AlertDialog(
-            modal=True,
-            title=ft.Text("Personnalisez votre Feed"),
-            actions=[
-                ft.ResponsiveRow(
-                    [
-                        ft.Column(
-                            [
-                                self.niveaux,
-                                ft.Text("Entrez vos thèmes  - séparez les par des virgules (,)", size=15, weight=ft.FontWeight.BOLD),
-                                self.themes,
-                            ],
-                            spacing=20,
-                        ),
-                        ft.Row(
-                            [
-                                ft.FilledButton(
-                                    text="Confirmer",
-                                    icon=ft.icons.CHECK,
-                                    width=165,
-                                    height=45,
-                                    on_click=self.handle_close_qu,
-                                    style=ft.ButtonStyle(bgcolor="#48dc03", color="#FFFFFF", overlay_color="#55ec04"),
-                                ),
-                                ft.FilledButton(
-                                    text=" ",
-                                    icon=ft.icons.QUESTION_MARK,
-                                    width=65,
-                                    height=45,
-                                    on_click=lambda e: e.page.open(self.explication),
-                                    style=ft.ButtonStyle(bgcolor="#009eff", color="#FFFFFF", overlay_color="#0190e8",),
-                                ),
-                            ],
-                            spacing=10,
-                        ),
-                    ],
-                ),
-            ],
-        )
-        from tool_fold import file_manager
-        from random import choice as rand_pick
-
-        self.value = rand_pick(self.libre)
-        self.fs = file_manager.FileSystem()
-
-        self.prompt = ft.TextField(
-            label=f"{self.value}", expand=True, border=ft.InputBorder.UNDERLINE, max_lines=5,
-            border_color="#FFFFFF", border_width=2, bgcolor="#272727",
-        )
-
-        self.nom_fic = ft.TextField(label="Nom du fichier")
-
-        self.drawer = ft.NavigationDrawer(
-            on_change=self.handle_change,
-            controls=[
-                ft.Text("Chat IA"),
-                ft.Container(height=12),
-                ft.NavigationDrawerDestination(
-                    label="Libre",
-                    icon=ft.icons.BORDER_COLOR_OUTLINED,
-                    selected_icon=ft.Icon(ft.icons.BORDER_COLOR_ROUNDED),
-                ),
-                ft.NavigationDrawerDestination(
-                    icon=ft.Icon(ft.icons.QUESTION_ANSWER_OUTLINED),
-                    label="Questions",
-                    selected_icon=ft.icons.QUESTION_ANSWER_ROUNDED,
-                ),
-                ft.NavigationDrawerDestination(
-                    icon=ft.Icon(ft.icons.MY_LIBRARY_BOOKS_OUTLINED),
-                    label="Exercices",
-                    selected_icon=ft.icons.MY_LIBRARY_BOOKS_ROUNDED,
-                ),
-                ft.NavigationDrawerDestination(
-                    icon=ft.Icon(ft.icons.TEXT_SNIPPET_OUTLINED),
-                    label="Fiches résumées",
-                    selected_icon=ft.icons.TEXT_SNIPPET_ROUNDED,
-                ),
-                ft.Text("Apprentissage personnalisé - A venir"),
-                ft.NavigationDrawerDestination(
-                    label="Système d'apprentissage intelligent",
-                    icon=ft.Icons.SMART_TOY_OUTLINED,
-                    selected_icon=ft.Icon(ft.Icons.SMART_TOY_ROUNDED),
-                ),
-            ],
-        )
-
-        self.dlg_modal = ft.AlertDialog(
-            modal=True,
-            title=ft.Text("Confirmation"),
-            content=ft.Text("Voulez vous sauvegardez votre prompt?"),
-            actions=[
-                ft.Column(
-                    [
-                        self.nom_fic,
-                        ft.Row(
-                            [
-                                ft.TextButton("Oui", on_click=self.save),
-                                ft.TextButton("Non", on_click=self.handle_close),
-                            ],
-                        ),
-                    ],
-                    spacing=25,
-                ),
-            ],
-        )
-
-    def handle_pan_start(self, e: ft.DragStartEvent):
-        self.start_y = e.local_y
-        self.is_swiping = True
-
-    def handle_pan_update(self, e: ft.DragUpdateEvent):
-        if self.start_y is None or not self.is_swiping:
+    def handle_pan_update(e: ft.DragUpdateEvent):
+        nonlocal start_y, is_swiping, last_call_time
+        if start_y is None or not is_swiping:
             return
 
-        delta_y = e.local_y - self.start_y
+        delta_y = e.local_y - start_y
 
         if delta_y < -50:
-            current_time = time.time()
-            if current_time - self.last_call_time >= self.min_delay:
-                print("calling self.AI_response(e, self.choice)")
-                print(f"self.last_call_time {self.last_call_time}")
+            current_time = time()
+            if current_time - last_call_time >= min_delay:
+                print("calling AI_response(e, choice)")
+                print(f"last_call_time {last_call_time}")
                 print(f"current_time {current_time}")
-                self.last_call_time = current_time
-                self.is_swiping = False
+                last_call_time = current_time
+                is_swiping = False
 
-    def handle_pan_end(self, e: ft.DragEndEvent):
-        self.is_swiping = False
-        self.start_y = None
+    def handle_pan_end(e: ft.DragEndEvent):
+        nonlocal is_swiping, start_y
+        is_swiping = False
+        start_y = None
 
-    def handle_close_qu(self, e):
-        self.fs.append_file(self.niveaux.value, 6, "assets/user_data/user_log.txt")
-        self.fs.append_file(self.themes.value.split(","), 7, "assets/user_data/user_log.txt")
-        e.page.close(self.first_time)
+    def handle_close_qu(e):
+        fs.append_file(niveaux.value, 6, "assets/user_data/user_log.txt")
+        fs.append_file(themes.value.split(","), 7, "assets/user_data/user_log.txt")
+        e.page.close(first_time)
         e.page.update()
 
-    def handle_change(self, e):
-        from random import choice as rand_pick
-        self.choice = e.control.selected_index
+    def handle_change(e):
+        nonlocal choice, value
+        choice = e.control.selected_index
         print("change ")
-        print(self.prompt.label)
+        print(prompt.label)
 
-        if self.choice == 1:
-            self.choice = "libre"
-            self.prompt.label = rand_pick(self.libre)
-            print(self.prompt.label)
+        if choice == 1:
+            choice = "question"
+            prompt.label = rand_pick(Questions)
+            print(prompt.label)
 
-        elif self.choice == 2:
-            self.choice = "question"
-            self.prompt.label = rand_pick(self.Questions)
+        elif choice == 2:
+            choice = "exercice"
+            prompt.label = rand_pick(exercice)
 
-        elif self.choice == 3:
-            self.choice = "exercice"
-            self.prompt.label = rand_pick(self.exercice)
+        elif choice == 3:
+            choice = "fiche"
+            prompt.label = rand_pick(exercice)
 
-        elif self.choice == 4:
-            self.choice = "smart"
-            self.smart.visible = True
-            self.reponse.visible = False
-            self.prompt.label = "Entrez un sujet/matière"
-            e.page.update()
+#        elif choice == 4:
+#            choice = "smart"
+#            smart.visible = True
+#            reponse.visible = False
+#            prompt.label = "Entrez un sujet/matière"
+#            e.page.update()
 
         else:
-            self.choice = "fiche"
-            self.prompt.label = rand_pick(self.resume)
+            choice = "fiche"
+            prompt.label = rand_pick(resume)
 
-        self.prompt.update()
+        prompt.update()
         e.page.update()
 
-    def send_data(e, target_page):
-        from time import sleep
-        sleep(0.1)
-        titles = {"/feed": 0, "/outil": 1, "/pomodoro": 1, "/": 2, "/about": 2, "/communaute": 3, "/librairie": 4}
-
-        e.page.navigation_bar.selected_index = titles[target_page]
-        e.page.go(target_page)
-        e.page.update()
-
-    def AI_response(self, e, value):
+    def AI_response(e, value):
         from random import randint
-        from huggingface_hub import InferenceClient
-        self.fs.add_xp(str(randint(4,25)))
-        #value = value - 1
+        nonlocal response_text
+        fs.add_xp(str(randint(4,25)))
         print("AI_response")
-        self.response_text.value = "l'IA réfléchit..."
+        
 
-        if not len(self.fs.read_given_line("assets/user_data/user_log.txt", 6).strip()):
-            e.page.open(self.first_time)
+        if not len(fs.read_given_line("assets/user_data/user_log.txt", 6).strip()):
+            e.page.open(first_time)
             print("empty")
         else:
             client = InferenceClient(api_key="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")
@@ -301,15 +121,16 @@ class AIApp(ft.UserControl):
                 "fiche": "Aide moi en faisant un résumé structuré sur: ",
             }
 
-            print("prompt " + preset[value])
+            print("prompt " + preset[value] + prompt.value)
             print(value)
-            difficulte = "de cette difficulté: " + self.fs.read_given_line("assets/user_data/user_log.txt", 6)
+            difficulte = "de cette difficulté: " + fs.read_given_line("assets/user_data/user_log.txt", 6)
 
             messages = [
-                {"role": "user", "content": f"{preset[value]} {self.prompt.value} {difficulte}"}
+                {"role": "user", "content": f"En francais {preset[value]} {prompt.value} {difficulte}"}
             ]
 
             stream = client.chat.completions.create(
+                #deepseek-ai/DeepSeek-R1-Distill-Qwen-32B
                 model="meta-llama/Meta-Llama-3-8B-Instruct",
                 messages=messages,
                 temperature=0.5,
@@ -318,101 +139,259 @@ class AIApp(ft.UserControl):
                 stream=True
             )
 
-            if self.response_text.value is None:
-                self.response_text.value = ""
+            if response_text.value is None:
+                response_text.value = ""
 
-            self.response_text.value = ""
-            self.response_text.update()
+            response_text.value = ""
+            response_text.update()
 
             for chunk in stream:
                 response_chunk = str(chunk.choices[0].delta.content)
-                self.response_text.value += response_chunk
-                self.response_text.update()
+                response_text.value += response_chunk
+                response_text.update()
                 print(response_chunk, end="")
-            self.prompt.value = ""
+            prompt.value = ""
 
-    def save(self, e):
+    def save(e):
         from time import sleep
         from random import randint
-        file_path = self.fs.write_to_file("./document/" + self.nom_fic.value + ".md", self.response_text.value)
+        file_path = fs.write_to_file("./document/" + nom_fic.value + ".md", response_text.value)
 
         e.page.snack_bar = ft.SnackBar(
-            ft.Text(f"Fichier sauvegardé: {self.nom_fic.value}")
+            ft.Text(f"Fichier sauvegardé: {nom_fic.value}")
         )
         e.page.snack_bar.open = True
-        self.update()
-        e.page.close(self.dlg_modal)
+        e.page.close(dlg_modal)
         sleep(1)
 
         value = randint(0, 10)
-        old_xp = int(self.fs.read_given_line("assets/user_data/user_log.txt", 3))
-        self.fs.append_file(str(int(value) + int(old_xp)), 3, file_path)
+        old_xp = int(fs.read_given_line("assets/user_data/user_log.txt", 3))
+        fs.append_file(str(int(value) + int(old_xp)), 3, file_path)
         e.page.snack_bar = ft.SnackBar(
             ft.Text(f"Vous avez gagné: {value} xp")
         )
         e.page.snack_bar.open = True
-        self.update()
 
-    def handle_close(self, e):
-        e.page.close(self.dlg_modal)
+    def handle_close(e):
+        e.page.close(dlg_modal)
 
-    def build(self):
-        return ft.Container(
+    smart = ft.Container(
+        ft.GestureDetector(
+            content=ft.Column(
+                [interactive_reponse],
+                scroll=ft.ScrollMode.AUTO,
+                expand=True,
+            ),
+            on_pan_start=handle_pan_start,
+            on_pan_update=handle_pan_update,
+            on_pan_end=handle_pan_end,
+        ),
+        expand=True,
+        visible=False,
+        height=400,
+        padding=10,
+    )
+
+    reponse = ft.Container(
+        ft.Column([response_text], scroll=ft.ScrollMode.AUTO),
+        height=400,
+        padding=10,
+        border_radius=5,
+        expand=True,
+        visible=True
+    )
+
+    niveaux = ft.Dropdown(
+        width=225,
+        hint_text="Entrez votre niveau",
+        options=[
+            ft.dropdown.Option("Débutant"),
+            ft.dropdown.Option("Intermédiaire"),
+            ft.dropdown.Option("Difficile"),
+            ft.dropdown.Option("Très difficile"),
+            ft.dropdown.Option("Très Avancé"),
+            ft.dropdown.Option("Le plus compliqué"),
+        ],
+    )
+
+    themes = ft.TextField(
+        label="Themes ex(cryptographie,méca. fluide)", expand=True, border=ft.InputBorder.UNDERLINE, max_lines=3,
+        border_color="#FFFFFF", border_width=2
+    )
+
+    explication = ft.BottomSheet(
+        dismissible=True,
+        content=ft.Container(
+            padding=50,
+            content=ft.Column(
+                tight=True,
+                controls=[
+                    ft.Text(
+                        "Ces informations sont collectées pour affiner notre IA afin de pouvoir vous proposez du contenu plus adapté et intéressant",
+                        size=15,
+                    ),
+                    ft.ElevatedButton(
+                        "Fermer", on_click=lambda e: e.page.close(explication)
+                    ),
+                ],
+            ),
+        ),
+    )
+
+    first_time = ft.AlertDialog(
+        modal=True,
+        title=ft.Text("Personnalisez votre Feed"),
+        actions=[
             ft.ResponsiveRow(
                 [
                     ft.Column(
                         [
-                            ft.Row(
-                                [
-                                    ft.IconButton(
-                                        icon=ft.icons.MENU,
-                                        icon_color="#FFFFFF",
-                                        icon_size=30,
-                                        on_click=lambda e: e.page.open(self.drawer),
-                                        tooltip="Menu IA",
-                                    ),
-                                    ft.IconButton(
-                                        icon=ft.icons.SAVE_ALT,
-                                        icon_color="#FFFFFF",
-                                        icon_size=30,
-                                        on_click=lambda e: e.page.open(self.dlg_modal),
-                                        tooltip="enregistrer",
-                                    ),
-                                ],
-                                spacing=10,
-                            ),
+                            niveaux,
+                            ft.Text("Entrez vos thèmes  - séparez les par des virgules (,)", size=15, weight=ft.FontWeight.BOLD),
+                            themes,
                         ],
-                        horizontal_alignment=ft.CrossAxisAlignment.START,
+                        spacing=20,
                     ),
-
-                    self.reponse,
-                    self.smart,
-                    ft.Column(
+                    ft.Row(
                         [
-                            ft.Row(
-                                [
-                                    self.prompt,
-                                    ft.OutlinedButton(
-                                        icon=ft.icons.ARROW_UPWARD,
-                                        height=40,
-                                        width=40,
-                                        style=ft.ButtonStyle(
-                                            color="#FFFFFF",
-                                            overlay_color="#0190e8",
-                                            shape=ft.RoundedRectangleBorder(radius=7),
-                                        ),
-                                        on_click=lambda e: self.AI_response(e, self.choice)
-                                    )
-                                ],
-                                spacing=10,
+                            ft.FilledButton(
+                                text="Confirmer",
+                                icon=ft.icons.CHECK,
+                                width=165,
+                                height=45,
+                                on_click=handle_close_qu,
+                                style=ft.ButtonStyle(bgcolor="#48dc03", color="#FFFFFF", overlay_color="#55ec04"),
+                            ),
+                            ft.FilledButton(
+                                text=" ",
+                                icon=ft.icons.QUESTION_MARK,
+                                width=65,
+                                height=45,
+                                on_click=lambda e: e.page.open(explication),
+                                style=ft.ButtonStyle(bgcolor="#009eff", color="#FFFFFF", overlay_color="#0190e8",),
                             ),
                         ],
-                        spacing=35,
-                        scroll=ft.ScrollMode.ALWAYS,
+                        spacing=10,
                     ),
                 ],
             ),
-        )
+        ],
+    )
 
-def feed(router_data: Union[Router, str, None] = None):
-    return AIApp()
+    prompt = ft.TextField(
+        label=f"{value}", expand=True, border=ft.InputBorder.UNDERLINE, max_lines=5,
+        border_color="#FFFFFF", border_width=2, bgcolor="#272727",
+    )
+
+    nom_fic = ft.TextField(label="Nom du fichier")
+
+    drawer = ft.NavigationDrawer(
+        on_change=handle_change,
+        controls=[
+            ft.Text("Chat IA"),
+            ft.Container(height=12),
+            ft.NavigationDrawerDestination(
+                label="Libre",
+                icon=ft.icons.BORDER_COLOR_OUTLINED,
+                selected_icon=ft.Icon(ft.icons.BORDER_COLOR_ROUNDED),
+            ),
+            ft.NavigationDrawerDestination(
+                icon=ft.Icon(ft.icons.QUESTION_ANSWER_OUTLINED),
+                label="Questions",
+                selected_icon=ft.icons.QUESTION_ANSWER_ROUNDED,
+            ),
+            ft.NavigationDrawerDestination(
+                icon=ft.Icon(ft.icons.MY_LIBRARY_BOOKS_OUTLINED),
+                label="Exercices",
+                selected_icon=ft.icons.MY_LIBRARY_BOOKS_ROUNDED,
+            ),
+            ft.NavigationDrawerDestination(
+                icon=ft.Icon(ft.icons.TEXT_SNIPPET_OUTLINED),
+                label="Fiches résumées",
+                selected_icon=ft.icons.TEXT_SNIPPET_ROUNDED,
+            ),
+            ft.Text("Apprentissage personnalisé - A venir"),
+            ft.NavigationDrawerDestination(
+                label="Système d'apprentissage intelligent",
+                icon=ft.Icons.SMART_TOY_OUTLINED,
+                selected_icon=ft.Icon(ft.Icons.SMART_TOY_ROUNDED),
+            ),
+        ],
+    )
+
+    dlg_modal = ft.AlertDialog(
+        modal=True,
+        title=ft.Text("Confirmation"),
+        content=ft.Text("Voulez vous sauvegardez votre prompt?"),
+        actions=[
+            ft.Column(
+                [
+                    nom_fic,
+                    ft.Row(
+                        [
+                            ft.TextButton("Oui", on_click=save),
+                            ft.TextButton("Non", on_click=handle_close),
+                        ],
+                    ),
+                ],
+                spacing=25,
+            ),
+        ],
+    )
+
+    return ft.Container(
+        ft.ResponsiveRow(
+            [
+                ft.Column(
+                    [
+                        ft.Row(
+                            [
+                                ft.IconButton(
+                                    icon=ft.icons.MENU,
+                                    icon_color="#FFFFFF",
+                                    icon_size=30,
+                                    on_click=lambda e: e.page.open(drawer),
+                                    tooltip="Menu IA",
+                                ),
+                                ft.IconButton(
+                                    icon=ft.icons.SAVE_ALT,
+                                    icon_color="#FFFFFF",
+                                    icon_size=30,
+                                    on_click=lambda e: e.page.open(dlg_modal),
+                                    tooltip="enregistrer",
+                                ),
+                            ],
+                            spacing=10,
+                        ),
+                    ],
+                    horizontal_alignment=ft.CrossAxisAlignment.START,
+                ),
+
+                reponse,
+                smart,
+                ft.Column(
+                    [
+                        ft.Row(
+                            [
+                                prompt,
+                                ft.OutlinedButton(
+                                    icon=ft.icons.ARROW_UPWARD,
+                                    height=40,
+                                    width=40,
+                                    style=ft.ButtonStyle(
+                                        color="#FFFFFF",
+                                        overlay_color="#0190e8",
+                                        shape=ft.RoundedRectangleBorder(radius=7),
+                                    ),
+                                    on_click=lambda e: AI_response(e, choice)
+                                )
+                            ],
+                            spacing=10,
+                        ),
+                    ],
+                    spacing=35,
+                    scroll=ft.ScrollMode.ALWAYS,
+                ),
+            ],
+        ),
+    )

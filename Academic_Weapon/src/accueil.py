@@ -122,10 +122,9 @@ def accueil(router_data: Union[Router, str, None] = None):
     from random import choice
     get_level()
 
-
     x = datetime.datetime.now()
     hour = int(x.strftime("%H"))
-    if 8 <= hour <= 12:
+    if 6 <= hour <= 12:
         value_hour = "Bonjour "
     elif 12 <= hour <= 18:
         value_hour = "Bon Après midi "
@@ -181,11 +180,12 @@ def accueil(router_data: Union[Router, str, None] = None):
                 ft.Container(
                     content=ft.ResponsiveRow(
                         [
-                            ft.Text("Entrainement mentale", size=17, weight=ft.FontWeight.BOLD),
+                            ft.Text("Entrainement mentale 🧠", size=17, weight=ft.FontWeight.BOLD),
                             ft.Text("Renforcez vos connaissances et capacités avec le Feed, s'échauffer sur: "),
                             ft.OutlinedButton(
                                 icon=ft.icons.AUTO_STORIES,
                                 text=choice(matieres),
+                                icon_color="#FFFFFF",
                                 on_click=lambda e: (bounce_animation(e), send_data(e, "/feed")),
                                 height=50,
                                 style=ft.ButtonStyle(
@@ -205,7 +205,7 @@ def accueil(router_data: Union[Router, str, None] = None):
                     content=ft.ResponsiveRow(
                         [
                             ft.Text(
-                                "Heure travaillé: "
+                                "Heure travaillé ⏲️: "
                                 + str(int(fs.read_given_line("assets/user_data/user_log.txt", 1)) / 60)[
                                     0:4
                                 ]
@@ -213,12 +213,13 @@ def accueil(router_data: Union[Router, str, None] = None):
                                 size=17,
                                 weight=ft.FontWeight.BOLD,
                             ),
-                            ft.Text("Ne perdez pas votre concentration continuez à vous concentrez"),
+                            ft.Text("Ne perdez pas votre concentration continuez à travailler"),
                             ft.OutlinedButton(
                                 icon=ft.icons.ACCESS_TIME,
                                 text="Continuer à travailler",
                                 on_click=lambda e: (bounce_animation(e), send_data(e, "/pomodoro")),
                                 height=50,
+                                icon_color="#FFFFFF",
                                 style=ft.ButtonStyle(
                                     shape=ft.RoundedRectangleBorder(radius=10),
                                     overlay_color="#1d5384",
@@ -238,12 +239,13 @@ def accueil(router_data: Union[Router, str, None] = None):
                 ft.Container(
                     content=ft.ResponsiveRow(
                         [
-                            ft.Text("Dernier Document Travaillé ", size=17, weight=ft.FontWeight.BOLD),
+                            ft.Text("Dernier Document Travaillé📚 ", size=17, weight=ft.FontWeight.BOLD),
                             ft.FilledButton(
                                 text=f"{fs.get_last_modified()}",
                                 icon=ft.icons.INSERT_DRIVE_FILE,
                                 width=60,
                                 height=40,
+                                icon_color="#FFFFFF",
                                 on_click=lambda e: (bounce_animation(e), send_data(e, "/librairie")),
                                 style=ft.ButtonStyle(
                                     shape=ft.RoundedRectangleBorder(radius=10),
@@ -265,19 +267,19 @@ def accueil(router_data: Union[Router, str, None] = None):
                 ft.Container(
                     content=ft.ResponsiveRow(
                         [
-                            ft.Text("Xp et levels", size=20, weight=ft.FontWeight.BOLD),
+                            ft.Text("Xp et levels ⚔️", size=20, weight=ft.FontWeight.BOLD),
                             ft.Text(
-                                f"Experience acquis: {str(fs.read_given_line('assets/user_data/user_log.txt', 3))}",
+                                f"Experience acquis : {str(fs.read_given_line('assets/user_data/user_log.txt', 3))}",
                                 size=15,
                                 weight=ft.FontWeight.BOLD,
                             ),
                             ft.Text(
-                                f"Niveau: {str(fs.read_given_line('assets/user_data/user_log.txt', 4).split("-")[0])}",
+                                f"Niveau : {str(fs.read_given_line('assets/user_data/user_log.txt', 4).split("-")[0])}",
                                 size=15,
                                 weight=ft.FontWeight.BOLD,
                             ),
                             ft.Text(
-                                f"Classe: {str(fs.read_given_line('assets/user_data/user_log.txt', 4).split("-")[1])}",
+                                f"Classe : {str(fs.read_given_line('assets/user_data/user_log.txt', 4).split("-")[1])}",
                                 size=15,
                                 weight=ft.FontWeight.BOLD,
                             ),

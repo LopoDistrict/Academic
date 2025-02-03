@@ -20,17 +20,31 @@ def markdown_editor(router):
 
     def load_file(e, file_path):
         try:
-            with open(file_path, "r") as file:
+            # Vérifier si le fichier existe
+            if not os.path.exists(file_path):
+                raise FileNotFoundError(f"Le fichier {file_path} n'existe pas.")
+
+            # Lire le contenu du fichier
+            with open(file_path, "r", encoding="utf-8") as file:
                 content = file.read()
 
+            # Mettre à jour le champ de texte et la prévisualisation Markdown
             text_field.value = content
             md.value = content
 
+            # Afficher un message de succès
             e.page.snack_bar = ft.SnackBar(ft.Text(f"Fichier ouvert: {file_path}"))
             e.page.snack_bar.open = True
-            e.page.update()
 
+            # Fermer la boîte de dialogue modale
             e.page.close(dlg_modal)
+
+            e.page.update()
+        except FileNotFoundError as fnf_error:
+            logging.error(f"File not found: {fnf_error}")
+            e.page.snack_bar = ft.SnackBar(ft.Text(f"Erreur: {fnf_error}"))
+            e.page.snack_bar.open = True
+            e.page.update()
         except Exception as ex:
             logging.error(f"Error loading file: {ex}")
             e.page.snack_bar = ft.SnackBar(ft.Text(f"Erreur lors de l'ouverture du fichier: {ex}"))
@@ -38,15 +52,10 @@ def markdown_editor(router):
             e.page.update()
 
     def get_document_directory():
-        """
-        Returns the path to the document directory based on the environment.
-        """
         return os.path.join(os.getcwd(), "document" if "ANDROID_BOOTLOGO" in os.environ else "src/document")
 
     def show_file_explorer(e):
-        """
-        Displays a file explorer dialog to select a file.
-        """
+        print("test")
         document_dir = get_document_directory()
         file_buttons = []
 
@@ -75,13 +84,10 @@ def markdown_editor(router):
         )
 
         e.page.dialog = file_explorer_dialog
-        file_explorer_dialog.open = True
+        e.page.open(file_explorer_dialog)
         e.page.update()
 
     def save(e):
-        """
-        Save the content to a file.
-        """
         fs = file_manager.FileSystem()
         file_path = fs.write_to_file(f"document/{nom_fic.value}.md", text_field.value)
 
@@ -192,7 +198,7 @@ def markdown_editor(router):
                 content=text_field,
                 expand=True,
             ),
-            ft.Divider(height=5, color="white"),
+            ft.Divider(height=10, color="white"),
             ft.Container(
                 content=ft.Column([md], scroll=ft.ScrollMode.AUTO),
                 expand=True,

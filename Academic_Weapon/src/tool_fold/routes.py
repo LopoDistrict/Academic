@@ -6,6 +6,7 @@ from tool_fold.pomodoro import pomodoro
 from tool_fold.todo import todo
 from tool_fold.markdown_editor import markdown_editor
 from tool_fold.flash_cards import flash_cards
+from tool_fold.calendar import calendar
 from communaute import communaute
 from librairie import librairie
 from feed import feed
@@ -26,5 +27,6 @@ router.routes = {
   "/librairie": librairie,
   #"/doc": doc,
   "/feed": feed,
-  "/about": about
+  "/about": about,
+  "/calendar": calendar
 }

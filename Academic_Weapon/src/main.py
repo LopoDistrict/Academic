@@ -7,7 +7,9 @@ import asyncio
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
+
 def check_debbug():
+
     files = (
         "accueil.py", "communaute.py", "librairie.py", "outils.py", "State.py",
         "tool_fold/doc.py", "tool_fold/file_manager.py", "tool_fold/flash_cards.py",

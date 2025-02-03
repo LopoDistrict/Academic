@@ -110,6 +110,7 @@ def flash_cards(router):
         max_lines=4,
     )
 
+
     response = ft.TextField(
         label="Réponse",
         border=ft.InputBorder.UNDERLINE,
@@ -123,6 +124,7 @@ def flash_cards(router):
         title=ft.Text("Nouvelle Carte"),
         content=ft.Column(
             [
+                ft.Text("Veuillez écrire sur la même ligne et ne pas ajouter de virgule"),
                 question,
                 response,
             ],
@@ -169,7 +171,6 @@ def flash_cards(router):
         expand=True,
     )
 
-    # Load existing flashcards from CSV
     load_flash_cards()
 
     # Main layout
