@@ -128,7 +128,7 @@ Pour nous aider vous pouvez me donnez de l'argent ou en partagez cette app aupr√
                                     on_click=lambda e: redirection(e, "https://academic-weapon.rf.gd")
                                 ),
                             ],
-                            alignment=ft.MainAxisAlignment.CENTER, 
+                            alignment=ft.MainAxisAlignment.CENTER,
                             spacing=15,
                         ),
                     ],

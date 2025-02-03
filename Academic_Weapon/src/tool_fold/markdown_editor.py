@@ -167,7 +167,7 @@ def markdown_editor(router):
 
     load_button = ft.OutlinedButton(
         text="Charger",
-        icon=ft.icons.FOLDER_COPY_ROUNDED,
+        icon=ft.Icons.FILE_OPEN,
         on_click=show_file_explorer,
         adaptive=True,
         width=100,

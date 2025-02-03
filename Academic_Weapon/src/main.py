@@ -143,7 +143,7 @@ async def main(page: ft.Page):
 
     page.add(loading_screen)
 
-    await asyncio.sleep(3)
+    #await asyncio.sleep(3)
     logging.info(f"Debug check: {check_debbug()}")
     loading_screen.controls.clear()
     page.update()
