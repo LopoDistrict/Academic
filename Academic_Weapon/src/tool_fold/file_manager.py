@@ -9,7 +9,6 @@ import csv
 
 class FileSystem:
     def __init__(self):
-        # Use an external directory or fallback to the current directory
         self.base_path = self.get_external_storage_directory()
         self.equivalent_mo = {
             'Jan': 1,
@@ -24,32 +23,38 @@ class FileSystem:
             'Oct': 10,
             'Nov': 11,
             'Dec': 12
-    }
+        }
         self.char = (
             'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's',
             't', 'u', 'v', 'w', 'x', 'y', 'z', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O',
             'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'
         )
 
-
     def get_external_storage_directory(self) -> Path:
-        #os.environ.get('RUNNING_ON_IOS', 'False') == 'True' if ios
-        if("ANDROID_BOOTLOGO" in os.environ or os.environ.get('RUNNING_ON_IOS', 'False') == 'True'):
-            storage_dir = ""
-            return Path(storage_dir)
+        # Check if running on Android or iOS
+        if self.is_android():
+            storage_dir = os.getenv("EXTERNAL_STORAGE")
+        elif self.is_ios():
+            storage_dir = os.path.expanduser("~")
+        else:
+            storage_dir = os.getenv("EXTERNAL_STORAGE") or os.getenv("HOME")
 
-        storage_dir = os.getenv("EXTERNAL_STORAGE") or os.getenv("HOME")
         if storage_dir is None:
             storage_dir = ""
         return Path(storage_dir)
 
-    
     def get_file_path(self, filename: str) -> Path:
-        if("ANDROID_BOOTLOGO" in os.environ or os.environ.get('RUNNING_ON_IOS', 'False') == 'True'):            
+        if self.is_android() or self.is_ios():
             return self.base_path / filename
         else:
-            print(f"base path {self.base_path / ("src/" + filename)}")
+            print(f"base path {self.base_path / ('src/' + filename)}")
             return self.base_path / ("src/" + filename)
+
+    def is_android(self) -> bool:
+        return "ANDROID_BOOTLOGO" in os.environ
+
+    def is_ios(self) -> bool:
+        return os.environ.get('RUNNING_ON_IOS', 'False') == 'True'
 
     def get_random_hex_color(self):
             from random import choice
