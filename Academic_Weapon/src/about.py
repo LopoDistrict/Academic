@@ -100,7 +100,7 @@ Pour nous aider vous pouvez me donnez de l'argent ou en partagez cette app aupr√
                                 color="#FFFFFF",
                                 bgcolor="#14e30e",
                             ),
-                            on_click=lambda e: redirection(e, "Accueil")
+                            on_click=lambda e: redirection(e, "https://buymeacoffee.com/komodo_")
                         ),
                         
                         ft.Row(

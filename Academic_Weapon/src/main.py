@@ -124,7 +124,7 @@ async def main(page: ft.Page):
                                 ft.Container(height=10),
                                 ft.ProgressBar(width=400, height=10, color="#0080ff", bgcolor="#eeeeee", border_radius=ft.border_radius.all(20)),
                                 ft.Container(height=5),
-                                ft.Text("Academic_Weapon_client_version=BETA_1.0.2", size=8)
+                                ft.Text("Academic_Weapon_client_version=BETA_1.0.6", size=8)
                             ],
                             alignment=ft.MainAxisAlignment.CENTER,
                             spacing=30,
@@ -143,7 +143,7 @@ async def main(page: ft.Page):
 
     page.add(loading_screen)
 
-    #await asyncio.sleep(3)
+    await asyncio.sleep(3)
     logging.info(f"Debug check: {check_debbug()}")
     loading_screen.controls.clear()
     page.update()
@@ -195,6 +195,7 @@ async def main(page: ft.Page):
         if 0 <= selected_index < len(titles):
             page.title = titles[selected_index]
             page.go(routes[selected_index])
+            
         page.update()
 
     page.navigation_bar = ft.NavigationBar(

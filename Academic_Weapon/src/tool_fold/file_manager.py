@@ -33,7 +33,8 @@ class FileSystem:
 
 
     def get_external_storage_directory(self) -> Path:
-        if("ANDROID_BOOTLOGO" in os.environ):
+        #os.environ.get('RUNNING_ON_IOS', 'False') == 'True' if ios
+        if("ANDROID_BOOTLOGO" in os.environ or os.environ.get('RUNNING_ON_IOS', 'False') == 'True'):
             storage_dir = ""
             return Path(storage_dir)
 
@@ -44,7 +45,7 @@ class FileSystem:
 
     
     def get_file_path(self, filename: str) -> Path:
-        if("ANDROID_BOOTLOGO" in os.environ):            
+        if("ANDROID_BOOTLOGO" in os.environ or os.environ.get('RUNNING_ON_IOS', 'False') == 'True'):            
             return self.base_path / filename
         else:
             print(f"base path {self.base_path / ("src/" + filename)}")
@@ -65,19 +66,25 @@ class FileSystem:
             ftp_server = ftplib.FTP(HOSTNAME, USERNAME, PASSWORD)
             ftp_server.encoding = "utf-8"
             
-            # Extract the filename from the URL
+            
             filename = url.split("/")[-1]
             filename = filename.replace("\n", "")  # Clean the filename
             
-            # Navigate to the target directory on the FTP server
             ftp_server.cwd('htdocs')
             ftp_server.cwd('com_docs')
             
-            # Define the local download path
-            download_dir = "/storage/emulated/0/Download"
+            if("ANDROID_BOOTLOGO" in os.environ): 
+                download_dir = "/storage/emulated/0/Download"
+
+            elif (os.environ.get('RUNNING_ON_IOS', 'False') == 'True'):                
+                download_dir = os.path.expanduser('~/Documents')
+                download_dir = os.path.join(documents_path, 'Downloads')
+        
+                if not os.path.exists(download_dir):
+                    os.makedirs(download_dir)
+
             local_file_path = os.path.join(download_dir, filename)
-            
-            # Ensure the download directory exists
+                        
             os.makedirs(download_dir, exist_ok=True)
             
             # Download the file
@@ -141,24 +148,29 @@ class FileSystem:
 
     def get_last_modified(self):
         doc_path = self.get_file_path("document/")
-        latest_time = datetime.datetime.min  # Initialize to the earliest possible datetime
-        latest_path = ""
+  
+        if len(os.listdir(doc_path)) == 0: 
+            # si le dossier est de base vide on a pas a check 
+            return None
+        else:
+            latest_time = datetime.datetime.min  # Initialize to the earliest possible datetime
+            latest_path = ""
 
-        for root, dirs, files in os.walk(doc_path):
-            for file in files:
-                file_full_path = os.path.join(root, file)
-                file_mtime = datetime.datetime.fromtimestamp(os.path.getmtime(file_full_path))
+            for root, dirs, files in os.walk(doc_path):
+                for file in files:
+                    file_full_path = os.path.join(root, file)
+                    file_mtime = datetime.datetime.fromtimestamp(os.path.getmtime(file_full_path))
 
-                # Debugging information
-                print(f"File: {file}, Modified Time: {file_mtime}")
+                    # Debugging information
+                    print(f"File: {file}, Modified Time: {file_mtime}")
 
-                if file_mtime > latest_time:
-                    latest_time = file_mtime
-                    latest_path = file_full_path
+                    if file_mtime > latest_time:
+                        latest_time = file_mtime
+                        latest_path = file_full_path
 
-        #print("Latest File Path:", latest_path)
-        #print("Latest File Name:", os.path.basename(latest_path))
-        return os.path.basename(latest_path)  
+            #print("Latest File Path:", latest_path)
+            #print("Latest File Name:", os.path.basename(latest_path))
+            return os.path.basename(latest_path)  
 
 
     def append_file(self, value, line, path):    

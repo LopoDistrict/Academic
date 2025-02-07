@@ -190,7 +190,7 @@ def accueil(router_data: Union[Router, str, None] = None):
                                 height=50,
                                 style=ft.ButtonStyle(
                                     shape=ft.RoundedRectangleBorder(radius=10),
-                                    overlay_color="#1d5384",
+                                    overlay_color="#0080ff",
                                     color="#FFFFFF",
                                 ),
                                 animate_scale=ft.Animation(duration=300, curve=ft.AnimationCurve.EASE_IN_OUT),
@@ -222,7 +222,7 @@ def accueil(router_data: Union[Router, str, None] = None):
                                 icon_color="#FFFFFF",
                                 style=ft.ButtonStyle(
                                     shape=ft.RoundedRectangleBorder(radius=10),
-                                    overlay_color="#1d5384",
+                                    overlay_color="#0080ff",
                                     color="#FFFFFF"
                                 ),
                                 animate_scale=ft.Animation(duration=300, curve=ft.AnimationCurve.EASE_IN_OUT),
@@ -251,7 +251,7 @@ def accueil(router_data: Union[Router, str, None] = None):
                                     shape=ft.RoundedRectangleBorder(radius=10),
                                     color="#FFFFFF",
                                     bgcolor="#3B556D",
-                                    overlay_color="#0b70d4",
+                                    overlay_color="#0080ff",
                                 ),
                                 animate_scale=ft.Animation(duration=300, curve=ft.AnimationCurve.EASE_IN_OUT),
                             ),

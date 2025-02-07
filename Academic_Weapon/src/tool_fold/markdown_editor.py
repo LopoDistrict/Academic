@@ -18,6 +18,20 @@ def markdown_editor(router):
     def handle_close(e):
         e.page.close(dlg_modal)
 
+    def suppr_fic(e, file_path):
+        #la fonction tente de supprimer le fichier
+        try:
+            os.remove(file_path)
+            e.page.snack_bar = ft.SnackBar(ft.Text(f"le fichier à bien été supprimé"))
+            e.page.snack_bar.open = True
+            e.page.update()
+
+        except Exception as ex:
+            e.page.snack_bar = ft.SnackBar(ft.Text(f"le fichier n'as pas pu être supprimé err_code={ex}"))
+            e.page.snack_bar.open = True
+            e.page.update()
+        
+
     def load_file(e, file_path):
         try:
             # Vérifier si le fichier existe
@@ -62,18 +76,30 @@ def markdown_editor(router):
         if os.path.exists(document_dir):
             for file_name in os.listdir(document_dir):
                 if file_name.endswith((".md", ".txt", ".py", ".cpp", ".js", ".java", ".jar")):
-                    file_button = ft.ElevatedButton(
-                        text=file_name,
-                        on_click=lambda e, fn=file_name: load_file(e, os.path.join(document_dir, fn)),
-                        style=ft.ButtonStyle(color="#0080ff", shape=ft.RoundedRectangleBorder(radius=10)),
+                    file_button = ft.Container(                    
+                        ft.Row(
+                            [
+                                ft.ElevatedButton(
+                                    text=file_name,
+                                    on_click=lambda e, fn=file_name: load_file(e, os.path.join(document_dir, fn)),
+                                    style=ft.ButtonStyle(color="#FFFFFF", shape=ft.RoundedRectangleBorder(radius=10)),
+                                ),
+                                ft.IconButton(
+                                    icon=ft.Icons.DELETE_FOREVER,
+                                    icon_color="#FFFFFF",
+                                    on_click=lambda e, fn=file_name: suppr_fic(e, os.path.join(document_dir, fn)),
+                                ),
+                            ],
+                        ),
                     )
+
                     file_buttons.append(file_button)
         else:
             file_buttons.append(ft.Text("Le dossier 'document' n'existe pas."))
 
         file_explorer_dialog = ft.AlertDialog(
             modal=True,
-            title=ft.Text("Sélectionnez un fichier"),
+            title=ft.Text("Sélectionnez un fichier à ouvrir"),
             content=ft.Column(
                 file_buttons,
                 scroll=ft.ScrollMode.AUTO,
@@ -140,7 +166,11 @@ def markdown_editor(router):
         ## Tables        
         | colonne 1     | colonne 2  |
         |---------------|-------------|
-        |ceci est un     | tableau      |
+        |ceci est un     | tableau    |
+
+        liens [nom](https://www.google.com)
+        ![nom image](https://picsum.photos/200/300)
+        
         """),
         actions=[ft.TextButton("Fermer", on_click=close_help)],
     )
@@ -152,26 +182,29 @@ def markdown_editor(router):
         adaptive=True,
         width=100,
         height=50,
+        icon_color="#0080ff",
         style=ft.ButtonStyle(color="#0080ff", shape=ft.RoundedRectangleBorder(radius=10)),
     )
 
     save_button = ft.OutlinedButton(
         text="Enreg.",
-        icon=ft.icons.SAVE_ALT,
+        icon=ft.Icons.SAVE,
         on_click=lambda e: e.page.open(dlg_modal),
         adaptive=True,
         width=100,
         height=50,
+        icon_color="#0080ff",
         style=ft.ButtonStyle(color="#0080ff", shape=ft.RoundedRectangleBorder(radius=10)),
     )
 
     load_button = ft.OutlinedButton(
-        text="Charger",
+        text="Ouvrir",
         icon=ft.Icons.FILE_OPEN,
         on_click=show_file_explorer,
         adaptive=True,
         width=100,
         height=50,
+        icon_color="#0080ff",
         style=ft.ButtonStyle(color="#0080ff", shape=ft.RoundedRectangleBorder(radius=10)),
     )
 
@@ -187,7 +220,9 @@ def markdown_editor(router):
     md = ft.Markdown(
         value=text_field.value,
         selectable=True,
-        extension_set="gitHubWeb",
+        code_theme="atom-one-dark",
+        #extension_set="gitHubWeb",
+        extension_set=ft.MarkdownExtensionSet.GITHUB_FLAVORED,
         on_tap_link=lambda e: e.page.launch_url(e.data),
     )
 

@@ -3,13 +3,22 @@ from . import file_manager
 from random import choice, randint
 
 def flash_cards(router):
+
+    def melanger_carte(e):
+        print(f"cards_column.controls {cards_column.controls}")
+        from random import shuffle
+        shuffle(cards_column.controls)
+        e.page.update()
+
+    def de_normalise(string_val):
+        return (string_val.replace("$$", "\n"))
     def load_flash_cards():
         """Load flash cards from the CSV file and display them."""
         fs = file_manager.FileSystem()
         try:
             saved = fs.matrix_csv("assets/user_data/flash_card.csv")
             for i in range(len(saved)):
-                create_card(saved[i][1], saved[i][2], saved[i][0], False)
+                create_card(de_normalise(saved[i][1]), de_normalise(saved[i][2]), saved[i][0], False)
         except FileNotFoundError:
             pass
 
@@ -46,6 +55,7 @@ def flash_cards(router):
 
         card_id = card_id or file_manager.FileSystem().uniq_id()
         print(f"card_id: {card_id}")
+
         card = ft.Container(
             content=ft.Stack(
                 [
@@ -84,12 +94,19 @@ def flash_cards(router):
 
         cards_column.controls.append(card)
         if save_to_csv:
-            save_flash_card_to_csv(card_id, question_text, response_text)
+            save_flash_card_to_csv(card_id, normaliser(question_text), normaliser(response_text))
+
+    def normaliser(string_val) -> str:
+        #le but de cette fonc est de normaliser
+        #le temps de pouvoir implémenter du json partout
+        string_val = (string_val.replace(",", ".")).replace("\n", "$$")
+        return string_val
 
     def add_new_card(e):
         from random import randint
         fs = file_manager.FileSystem()
         fs.append_file(randint(8, 13), 3, 'assets/user_data/user_log.txt')  # Add XP
+        #create_card(question.value.replace(",", "."), response.value, save_to_csv=True)
         create_card(question.value, response.value, save_to_csv=True)
         response.value = ""
         question.value = ""
@@ -124,11 +141,12 @@ def flash_cards(router):
         title=ft.Text("Nouvelle Carte"),
         content=ft.Column(
             [
-                ft.Text("Veuillez écrire sur la même ligne et ne pas ajouter de virgule"),
+                ft.Text("Veuillez ne pas sauter ligne et ne pas ajouter de virgule"),
                 question,
                 response,
             ],
             spacing=10,
+            height=250,
         ),
         actions=[
             ft.Row(
@@ -147,24 +165,25 @@ def flash_cards(router):
                 alignment=ft.MainAxisAlignment.END,
             )
         ],
+        
     )
 
-    # Add and save buttons
     add_button = ft.OutlinedButton(
         text="Ajouter une carte",
         icon=ft.icons.ADD,
         on_click=lambda e: e.page.open(dlg_modal),
         height=45,
+        icon_color="#FFFFFF",
         width=200,
         style=ft.ButtonStyle(
             color="#FFFFFF",
             overlay_color="#0080ff",
             shape=ft.RoundedRectangleBorder(radius=7),
+            
         ),
         animate_scale=ft.Animation(duration=300, curve=ft.AnimationCurve.EASE_IN_OUT),
     )
 
-    # Column to hold the cards
     cards_column = ft.Column(
         spacing=10,
         scroll=ft.ScrollMode.AUTO,
@@ -182,6 +201,25 @@ def flash_cards(router):
                 alignment=ft.MainAxisAlignment.CENTER,
             ),
             ft.Divider(height=5, color="white"),
+            ft.Row(
+                [
+                    ft.OutlinedButton(
+                        text="Mélanger",
+                        icon=ft.Icons.SHUFFLE,
+                        height=45,
+                        icon_color="#FFFFFF",
+                        width=150,
+                        on_click=lambda e: melanger_carte(e),
+                        style=ft.ButtonStyle(
+                            color="#FFFFFF",
+                            overlay_color="#0080ff",
+                            shape=ft.RoundedRectangleBorder(radius=7),
+                        ),
+                        animate_scale=ft.Animation(duration=300, curve=ft.AnimationCurve.EASE_IN_OUT),
+                    ),                    
+                ],
+                #alignment=ft.MainAxisAlignment.LEFT,
+            ),
             cards_column,
         ],
         spacing=15,

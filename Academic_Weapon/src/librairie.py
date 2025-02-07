@@ -174,7 +174,7 @@ def librairie(router_data: Union[Router, str, None] = None):
         # Clear previous search results
         searched.controls.clear()
 
-        if "ANDROID_BOOTLOGO" in os.environ:
+        if "ANDROID_BOOTLOGO" in os.environ or os.environ.get('RUNNING_ON_IOS', 'False') == 'True':
             doc_path = os.path.join(os.getcwd(), "document")
         else:
             doc_path = os.path.join(os.getcwd(), "src/document")
@@ -241,6 +241,26 @@ def librairie(router_data: Union[Router, str, None] = None):
         )
         liked_buttons.append(button)
 
+    if fs.get_last_modified() is None:
+        recent_file_value = ft.Text("Aucun fichier récent")
+    else:
+        last_modified_file = fs.get_last_modified()  # Capture the value explicitly
+        recent_file_value = ft.FilledButton(
+            icon=ft.icons.INSERT_DRIVE_FILE,
+            text=f"{last_modified_file}",
+            width=270,
+            height=40,
+            icon_color="#FFFFFF",
+            on_click=lambda e, fn=last_modified_file: (bounce_animation(e), show_info_file(e, fn, fn.split(".")[-1], fn)),
+            style=ft.ButtonStyle(
+                shape=ft.RoundedRectangleBorder(radius=10),
+                color="#FFFFFF",
+                bgcolor="#3B556D",
+                overlay_color="#0b70d4",
+            ),
+            animate_scale=ft.Animation(duration=300, curve=ft.AnimationCurve.EASE_IN_OUT),
+        )
+
     content = ft.Container(
         ft.Column(
             [
@@ -258,22 +278,7 @@ def librairie(router_data: Union[Router, str, None] = None):
                     content=ft.Column(
                         [
                             ft.Text("Récents", size=17, weight=ft.FontWeight.BOLD),
-                            ft.FilledButton(
-                                icon=ft.icons.INSERT_DRIVE_FILE,
-                                text=f"{fs.get_last_modified()}",
-                                width=270,
-                                height=40,
-                                icon_color="#FFFFFF",
-                                #on_click=lambda e, fn=fs.get_last_modified(): (bounce_animation(e), send_data(e, extension_route.get(fn.split('.')[-1], "/librairie"))),
-                                on_click=lambda e, fn=fs.get_last_modified(): (bounce_animation(e), show_info_file(e, fn, fn.split(".")[-1], fn)),
-                                style=ft.ButtonStyle(
-                                    shape=ft.RoundedRectangleBorder(radius=10),
-                                    color="#FFFFFF",
-                                    bgcolor="#3B556D",
-                                    overlay_color="#0b70d4",
-                                ),
-                                animate_scale=ft.Animation(duration=300, curve=ft.AnimationCurve.EASE_IN_OUT),
-                            ),
+                            ft.Column([recent_file_value]),
                         ],
                         spacing=10,
                         alignment=ft.MainAxisAlignment.CENTER,
