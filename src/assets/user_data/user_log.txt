@@ -1,0 +1,9 @@
+streak_days=2
+time_worked=10
+last_conn_date=2025/02/15
+xp=81
+lvl_grade=5-Hallebardier éduqué
+name=Nashou
+prompt_diff=Très difficile
+subject=
+enc_key=True

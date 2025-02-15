@@ -1,0 +1,13 @@
+Merci d'avoir téléchargé Academic Weapon
+J'espère que cela vous aidera!
+
+-Guide de téléchargement-
+
+Android
+! Je vous conseille de passer par le play store pour éviter tout problème et avoir les dernières mise à jour.
+
+1/ téléchargez aw.apk (normalement c'est la dernière version)
+2/ Lorsque le téléchargement sera terminé, il faut que vous cherchiez dans votre dossier Téléchargements (ou Download) avec votre gestionnaire de fichier de base ou Google Files
+3/ Appuyez sur aw.apk cela va démarrez le téléchargement, normalement ils ne demanderont pas de vérifier l'app mais si c'est demandé faites le.
+4/ Votre App est téléchargé
+5/Si vous souhaitez mettre à jour faites la même manipulation avec le nouveau fichier

@@ -1,2 +1,9 @@
-# Academic
-Repo for academic app made in Pyflet
+# A academic_weapon Flet app
+
+An example of a minimal Flet app.
+
+To run the app:
+
+```
+flet run [app_directory]
+```
