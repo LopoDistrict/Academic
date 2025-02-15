@@ -18,7 +18,7 @@ class sql_data:
             ".docx.txt.doc.odt": ft.icons.FOLDER_COPY_ROUNDED,
         }
         self.is_named_search = True
-        self.page_height = 300
+        self.page_height = 400
         self.like_icon = ft.Icon(name=ft.icons.FAVORITE, color="#dcdcdc", size=40)
         self.char = (
             "a",
@@ -92,6 +92,7 @@ class sql_data:
         self.desc_aff = ft.Text(size=14, color="#ababab")
         self.download = ""
         self.id = ""
+        self.UI_object = UI()
 
 
         self.info = ft.AlertDialog(
@@ -488,7 +489,8 @@ class sql_data:
         #séparer les fonctionnalités
         from tool_fold import file_manager
         logging.info(f"New label data: {data}")
-        load.visible = True
+        #load.visible = True
+        self.UI_object.show_loader(e)
         try:
             fs = file_manager.FileSystem()
             i_turn = len(data) if is_value_given else 4
@@ -523,10 +525,7 @@ class sql_data:
                                                 f"{data[i][3]}B • {data[i][7]}",
                                                 size=12, color="#d2dbe3",
                                             ),
-                                            ft.Text(
-                                                f"Par {data[i][5]}",
-                                                size=11, color="#5af979",
-                                            ),
+
                                         ]
                                     ),
                                     ft.Container(
@@ -572,17 +571,40 @@ class sql_data:
         except Exception as ex:
             logging.error(f"An error occurred in add_new_label: {ex}")
         finally:
-            load.visible = False
+            #load.visible = False
+            self.UI_object.hide_loader(e)
             e.page.update()
+
+
+class UI:
+    #Juste pour ne pas mettre le loader et snackbar dans une classe random
+    def __init__(self):
+        self.loader_alert = ft.AlertDialog(
+            content=ft.Row(
+                [
+                    ft.Text("Chargement", weight=ft.FontWeight.BOLD),
+                    ft.ProgressRing(width=36, height=36, stroke_width=5)
+                ]
+            )
+        )
+
+    def show_loader(self, e):
+        e.page.open(self.loader_alert)
+        e.page.update()  # Update the dialog
+
+    def hide_loader(self, e):
+        e.page.close(self.loader_alert)
+        self.pageloader_alert.update()  # Close and update the dialog
+
 
 class login_form:
     #-----------------
     #TODO 
     # fait- faire les snackbar en cas d'erreur
-    #remove la clé à chaque lancement d'app si l'utilisateur n'a pas spécifié is_remember
+    #fait- remove la clé à chaque lancement d'app si l'utilisateur n'a pas spécifié is_remember
     #loading visibility 
     #search prévoir cas ou l'user cherche plusieurs que 10 
-
+    #mettre les scnack bar dans une fonction de class UI
     #On ne peut pas afficher le nom de l'utilisateur => faille de securité
     #possible
     #-------------------------
@@ -774,14 +796,19 @@ def communaute(router_data: Union[str, None] = None):
     etiquette = sql_data()
     user_login_object = login_form(etiquette)
     selected_file = {}
+    ui_object = UI()
+    
 
     def loading_encryption_handling():  
+        #ui_object.show_loader(e)
         if user_login_object.check_encryption_token():
             e.page.snack_bar = ft.SnackBar(
                 ft.Text(f"Connecté en tant que: {user_login_object.user_name}")
             )
             e.page.snack_bar.open = True
             e.page.update()
+
+        #ui_object.hide_loader(e)
 
     def add_file_pick(e):
         try:
@@ -823,8 +850,10 @@ def communaute(router_data: Union[str, None] = None):
             return
 
         try:
+            ui_object.show_loader(e)
             e.page.splash = ft.ProgressBar()
             e.page.update()
+            
 
             etiquette.upload_document_db(
                 titre.value, description.value, selected_file["path"], matiere.value
@@ -833,6 +862,7 @@ def communaute(router_data: Union[str, None] = None):
 
             etiquette.upload_document_ftp(selected_file["path"], selected_file["name"])
             logging.info("File uploaded to FTP server.")
+            
 
             e.page.close(upload_alert)
             e.page.snack_bar = ft.SnackBar(ft.Text("Le fichier a bien été uploadé"))
@@ -847,6 +877,7 @@ def communaute(router_data: Union[str, None] = None):
             e.page.snack_bar.open = True
         finally:
             # Remove loading indicator
+            ui_object.hide_loader(e)
             e.page.splash = None
             e.page.update()
 
@@ -1016,6 +1047,7 @@ def communaute(router_data: Union[str, None] = None):
         except Exception as ex:
             print(ex)
 
+        
     already_connected = ft.Text(f"Vous êtes déja connecté en tant que: {user_login_object.user_name}")
     login_name = ft.TextField(
         label="Nom",
@@ -1254,6 +1286,7 @@ def communaute(router_data: Union[str, None] = None):
                 ft.Column(
                     [ft.Row(
                         [
+                            ui_object.loader_alert,
                             ft.TextButton(
                                 "Se Login",
                                 icon=ft.Icons.VPN_KEY,
@@ -1331,7 +1364,7 @@ def communaute(router_data: Union[str, None] = None):
             spacing=25,
             scroll=ft.ScrollMode.ALWAYS,
         ),
-        height=etiquette.page_height + 400,
+        height=etiquette.page_height + 500,
     )
     return content
     loading_encryption_handling()

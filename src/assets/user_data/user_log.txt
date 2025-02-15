@@ -1,7 +1,7 @@
-streak_days=2
+streak_days=3
 time_worked=10
-last_conn_date=2025/02/15
-xp=81
+last_conn_date=2025/02/16
+xp=94
 lvl_grade=5-Hallebardier éduqué
 name=Nashou
 prompt_diff=Très difficile
