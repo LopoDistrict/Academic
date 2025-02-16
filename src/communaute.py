@@ -681,6 +681,9 @@ class login_form:
         if self.is_login == False:
             if psswd == confirm and confirm is not None:
                 return_value_creating_account = self.create_account(name, psswd, confirm, email)
+                from time import sleep
+                sleep(2) #Anti-Brute force methode inspired by Microsoft Windows
+
                 if return_value_creating_account:
                     e.page.snack_bar = ft.SnackBar(
                         ft.Text("Le compte a été créée avec succès")
@@ -707,6 +710,8 @@ class login_form:
                 print("pas le même mdp")
         else:
             self.id_user = self.signup(name, psswd)[0][0] # [()]
+            from time import sleep
+            sleep(2) #Anti-Brute force methode inspired by Microsoft Windows
             if not self.id_user:
                 e.page.snack_bar = ft.SnackBar(
                     ft.Text("Mauvais identifiant ou mot de passe")
