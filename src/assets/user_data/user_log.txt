@@ -1,9 +1,9 @@
-streak_days=3
+streak_days=4
 time_worked=10
-last_conn_date=2025/02/16
-xp=94
-lvl_grade=5-Hallebardier éduqué
+last_conn_date=2025/02/17
+xp=106
+lvl_grade=6-saltinbamque doué
 name=Nashou
-prompt_diff=Très difficile
-subject=
+prompt_diff=Difficile
+subject=['crypto']
 enc_key=True

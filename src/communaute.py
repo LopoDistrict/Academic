@@ -227,7 +227,7 @@ class sql_data:
         logging.info(f"info_aff.value  {self.info_aff.value}")
         logging.info(f"type_aff.value  {self.type_aff.value}")
         logging.info(f"desc_aff.value  {self.desc_aff.value}")
-
+        
         e.page.open(self.info)
 
     def uniq_id(self):
@@ -314,6 +314,7 @@ class sql_data:
 
     def handle_search(self, e, value, etiquette_data, load, bool_search_name):
         etiquette_data.controls.clear()
+        #doit etre modifier pour appeler handle_search dans le main
         e.page.update()
         search_results = self.search(value, bool_search_name)
         if search_results:
@@ -490,7 +491,7 @@ class sql_data:
         from tool_fold import file_manager
         logging.info(f"New label data: {data}")
         #load.visible = True
-        self.UI_object.show_loader(e)
+        #self.UI_object.show_loader(e)
         try:
             fs = file_manager.FileSystem()
             i_turn = len(data) if is_value_given else 4
@@ -572,7 +573,7 @@ class sql_data:
             logging.error(f"An error occurred in add_new_label: {ex}")
         finally:
             #load.visible = False
-            self.UI_object.hide_loader(e)
+            #self.UI_object.hide_loader(e)
             e.page.update()
 
 
@@ -802,10 +803,26 @@ def communaute(router_data: Union[str, None] = None):
     user_login_object = login_form(etiquette)
     selected_file = {}
     ui_object = UI()
+
+    loading_alert = ft.AlertDialog(
+        content=ft.Container(
+            padding=ft.padding.all(20),
+            content=ft.Column(
+                [
+                    ft.Text("Chargement..."),
+                    ft.ProgressRing(width=36, height=36, stroke_width=4),
+                ],
+                alignment=ft.MainAxisAlignment.CENTER,
+                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+            ),
+            height=70,
+        ),
+        bgcolor="#314049",
+    )
     
 
     def loading_encryption_handling():  
-        #ui_object.show_loader(e)
+        show_loader(e)
         if user_login_object.check_encryption_token():
             e.page.snack_bar = ft.SnackBar(
                 ft.Text(f"Connecté en tant que: {user_login_object.user_name}")
@@ -813,7 +830,15 @@ def communaute(router_data: Union[str, None] = None):
             e.page.snack_bar.open = True
             e.page.update()
 
-        #ui_object.hide_loader(e)
+        hide_loader(e)
+
+    def show_loader(e):
+        e.page.open(loading_alert)
+        e.page.update()  
+
+    def hide_loader(e):
+        e.page.close(loading_alert)
+        e.page.update()
 
     def add_file_pick(e):
         try:
@@ -858,7 +883,7 @@ def communaute(router_data: Union[str, None] = None):
             ui_object.show_loader(e)
             e.page.splash = ft.ProgressBar()
             e.page.update()
-            
+            show_loader(e)
 
             etiquette.upload_document_db(
                 titre.value, description.value, selected_file["path"], matiere.value
@@ -868,7 +893,7 @@ def communaute(router_data: Union[str, None] = None):
             etiquette.upload_document_ftp(selected_file["path"], selected_file["name"])
             logging.info("File uploaded to FTP server.")
             
-
+            hide_loader(e)
             e.page.close(upload_alert)
             e.page.snack_bar = ft.SnackBar(ft.Text("Le fichier a bien été uploadé"))
             e.page.snack_bar.open = True
@@ -1263,11 +1288,13 @@ def communaute(router_data: Union[str, None] = None):
     text_button = "Commencez à chercher"
 
     def pre_add(e, etiquette_t, etiquette_data, load, val): #val = is_value_giver
+        show_loader(e)
         text_button = "Chargez plus de contenu"
         titre_intro.value = ""
         intro.value = ""
         #etiquette.add_new_label(e, etiquette_t, etiquette_data, load, val)
         etiquette.retrieve_normalise(e, etiquette_data, load)
+        hide_loader(e)
 
     def check_if_user_login_before_upload(e):
         if not user_login_object.user_is_logged_on:
@@ -1291,7 +1318,8 @@ def communaute(router_data: Union[str, None] = None):
                 ft.Column(
                     [ft.Row(
                         [
-                            ui_object.loader_alert,
+                            loading_alert,
+                            #ui_object.loader_alert,
                             ft.TextButton(
                                 "Se Login",
                                 icon=ft.Icons.VPN_KEY,

@@ -41,6 +41,7 @@ async def main(page: ft.Page):
     page.padding = ft.padding.only(left=16, top=50, right=16)
     page.scroll = ft.ScrollMode.HIDDEN
 
+
     quote_list = [
         "Il est difficile d'échouer, mais il est pire de n'avoir jamais essayé de réussir ~ T.Roosevelt",
         "Votre paresse est un manque de respect pour les personnes qui croient en vous",
@@ -161,6 +162,8 @@ async def main(page: ft.Page):
                 os.remove("assets/user_data/.enc")
             except:
                 pass
+
+    
 
     def save(e):
         try:

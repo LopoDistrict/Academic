@@ -49,23 +49,7 @@ def outils(router_data: Union[Router, str, None] = None):
                             ),
                             animate_scale=ft.Animation(duration=300, curve=ft.AnimationCurve.EASE_IN_OUT),
                         ),
-                        ft.ElevatedButton(
-                            icon=ft.Icons.GRAIN,
-                            text="Résumeur de cours",
-                            width=60,
-                            height=80,
-                            icon_color="#FFFFFF",
-                                              
-                            on_click=lambda e: (bounce_animation(e), send_data(e, "/transform_stream")),
-                            style=ft.ButtonStyle(
-                                shape=ft.RoundedRectangleBorder(radius=10),
-                                color="#FFFFFF",
-                                bgcolor="#023066",
-                                overlay_color="#0080ff",
-                                
-                            ),
-                            animate_scale=ft.Animation(duration=300, curve=ft.AnimationCurve.EASE_IN_OUT),
-                        ),
+
                         ft.FilledButton(
                             icon=ft.icons.CHECKLIST,
                             text="Liste à faire",
@@ -144,6 +128,23 @@ def outils(router_data: Union[Router, str, None] = None):
                                 color="#FFFFFF",
                                 bgcolor="#023066",
                                 overlay_color="#0080ff"
+                            ),
+                            animate_scale=ft.Animation(duration=300, curve=ft.AnimationCurve.EASE_IN_OUT),
+                        ),
+                        ft.ElevatedButton(
+                            icon=ft.Icons.GRAIN,
+                            text="Résumeur de cours (peut présenter des bugs)",
+                            width=60,
+                            height=80,
+                            icon_color="#FFFFFF",
+                                              
+                            on_click=lambda e: (bounce_animation(e), send_data(e, "/transform_stream")),
+                            style=ft.ButtonStyle(
+                                shape=ft.RoundedRectangleBorder(radius=10),
+                                color="#FFFFFF",
+                                bgcolor="#023066",
+                                overlay_color="#0080ff",
+                                
                             ),
                             animate_scale=ft.Animation(duration=300, curve=ft.AnimationCurve.EASE_IN_OUT),
                         ),

@@ -108,8 +108,8 @@ def feed(router_data: Union[Router, str, None] = None):
         fs.add_xp(str(randint(4,25)))
         print("AI_response")
         
-
-        if not len(fs.read_given_line("assets/user_data/user_log.txt", 6).strip() == ""):
+        print(fs.read_given_line("assets/user_data/user_log.txt", 6))
+        if not len(fs.read_given_line("assets/user_data/user_log.txt", 6).strip()):
             e.page.open(first_time)
             print("empty")
         else:
@@ -132,7 +132,7 @@ def feed(router_data: Union[Router, str, None] = None):
             stream = client.chat.completions.create(
                 #deepseek-ai/DeepSeek-R1-Distill-Qwen-32B
                 #meta-llama/Meta-Llama-3-8B-Instruct
-                model="deepseek-ai/deepseek-coder-1.3b-instruct",
+                model="mistralai/Mistral-7B-Instruct-v0.3",
                 messages=messages,
                 temperature=0.3,
                 max_tokens=6000,
@@ -378,11 +378,13 @@ def feed(router_data: Union[Router, str, None] = None):
                                 ft.OutlinedButton(
                                     icon=ft.icons.ARROW_UPWARD,
                                     height=40,
-                                    width=40,
+                                    width=35,
+                                    icon_color="#FFFFFF",
                                     style=ft.ButtonStyle(
                                         color="#FFFFFF",
                                         overlay_color="#0190e8",
                                         shape=ft.RoundedRectangleBorder(radius=7),
+                                        
                                     ),
                                     on_click=lambda e: AI_response(e, choice)
                                 )

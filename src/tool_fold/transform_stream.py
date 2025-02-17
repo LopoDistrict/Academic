@@ -3,39 +3,58 @@ import sounddevice as sd
 import soundfile as sf
 import numpy as np
 from typing import Union
+import speech_recognition as sr
+from huggingface_hub import InferenceClient
 
-class Audio_transformation():
+class AudioTransformation:
     def __init__(self):
-        from . import file_manager
+        from . import file_manager  # Assuming file_manager is in the same directory
         self.fs = file_manager.FileSystem()
         self.audio_path = self.fs.get_file_path("assets/user_data/tmp.wav")
-        self.transcribe_txt = ""
+        self.transcribe_txt_value = ""
+        self.recognizer = sr.Recognizer()  # Initialize the recognizer
 
     def transcribe_txt(self):
-        r = sr.Recognizer()                                                       
-        audio = sr.AudioFile(self.audio_path)
-        with audio as source:
-            audio = r.record(source)
-            result = r.recognize_google(audio)
-        self._transcribe_txt = result
+        import os
+        self.audio_path = str(self.fs.get_file_path("assets/user_data/test.wav"))  # Ensure string path
+        print(f"Audio file path: {self.audio_path}")
+        print(f"Audio file exists: {os.path.exists(self.audio_path)}")
+
+        if not os.path.exists(self.audio_path):
+            raise FileNotFoundError(f"Audio file not found at: {self.audio_path}")
+
+        try:
+            with open(self.audio_path, "rb") as audio_file:  # Ensure it's opened as file-like object
+                with sr.AudioFile(audio_file) as source:
+                    audio = self.recognizer.record(source)
+                    result = self.recognizer.recognize_google(audio, language="fr-FR")
+                    print(f"Transcription: {self.recognizer.recognize_google(audio, language="fr-FR")}")
+                    self.transcribe_txt_value = result
+
+        except sr.UnknownValueError:
+            print("Google Speech Recognition could not understand audio")
+        except sr.RequestError as e:
+            print(f"Could not request results from Google Speech Recognition service; {e}")
+            print(f"Error, exception: {e}")
+        except Exception as ex:
+            print(f"Error, exception: {ex}")
 
 
-class AI_handling():
+
+
+
+class AIHandling:
     def __init__(self):
-        from huggingface_hub import InferenceClient
         self._ai_model = "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B"
         self.client = InferenceClient(api_key="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")
-        #self.Aud_obj = Audio_transformation() => on utilise l'objet dans le main 
-
+        self.text_transcribed = ""
 
     def get_summary(self, message_stream):
         messages = [
             {"role": "user", "content": f"à l'aide de ce cours crée un résumé: {message_stream}"}
         ]
 
-        stream = client.chat.completions.create(
-            #deepseek-ai/DeepSeek-R1-Distill-Qwen-32B
-            #meta-llama/Meta-Llama-3-8B-Instruct
+        stream = self.client.chat.completions.create(
             model="deepseek-ai/deepseek-coder-1.3b-instruct",
             messages=messages,
             temperature=0.3,
@@ -46,17 +65,14 @@ class AI_handling():
 
         for chunk in stream:
             response_chunk = str(chunk.choices[0].delta.content)
-            response_text.value += response_chunk
-            response_text.update()
+            self.text_transcribed += response_chunk
             print(response_chunk, end="")
 
     def get_flash_card(self, message_stream):
-        #pas maintenant peut etre plus tard 
         pass
 
 
 def transform_stream(router_data: Union[str, None] = None):
-
     def start_recording(e):
         nonlocal recording, audio_data, stream
         if not recording:
@@ -65,15 +81,9 @@ def transform_stream(router_data: Union[str, None] = None):
             start_button.disabled = True
             stop_button.disabled = False
             stop_button.icon_color = "#c80f0f"
-            
 
-            # Prepare array to store audio
             audio_data = np.zeros((samplerate, 1), dtype='float32')
-
-            # Ensure we are using the correct input device
             sd.default.device = default_input_device
-
-            # Start recording in a non-blocking way
             stream = sd.InputStream(samplerate=samplerate, channels=1, dtype='float32', callback=audio_callback)
             stream.start()
 
@@ -90,33 +100,39 @@ def transform_stream(router_data: Union[str, None] = None):
             start_button.disabled = False
             stop_button.disabled = True
             start_button.icon_color = "#c5c5c5"
-            
             stop_button.icon_color = "#c80f0f"
 
-            # Stop recording
             stream.stop()
             stream.close()
 
             fs = file_manager.FileSystem()
             file_path = fs.get_file_path("assets/user_data/tmp.wav")
-
             sf.write(file_path, audio_data, samplerate)
             recording_state.update()
             start_button.update()
             stop_button.update()
 
     def handle_transcription_ai_transform(e):
-        transcribe_txt_obj = Audio_transformation()
-        ai_obj = AI_handling()
+        show_loader(e)
+        transcribe_txt_obj = AudioTransformation()
+        ai_obj = AIHandling()
 
         transcribe_txt_obj.transcribe_txt()
         loading_txt.value = "Création de votre fiche..."
-        ai_obj.get_summary(transcribe_txt_obj)
-        
+        ai_obj.get_summary(transcribe_txt_obj.transcribe_txt_value)
+
+        e.page.open(dlg_modal)
+        hide_loader(e)
+
+    def save_fiche(e):
+        e.page.close(dlg_modal)
+        from . import file_manager
+        fs = file_manager.FileSystem()
+        fs.write_to_file(f"document/{nom_fic.value}.md", ai_obj.text_transcribed)
 
     def show_loader(e):
         e.page.open(loading_alert)
-        e.page.update()  
+        e.page.update()
 
     def hide_loader(e):
         e.page.close(loading_alert)
@@ -127,11 +143,10 @@ def transform_stream(router_data: Union[str, None] = None):
         if recording:
             audio_data = np.append(audio_data, indata)
 
-    samplerate = 48000  # Sample rate (48.0 kHz)
-    #seconds = 5  # Duration of recording
-    recording = False  # Recording state
+    samplerate = 48000
+    recording = False
     audio_data = np.array([], dtype='float32')
-    stream = None 
+    stream = None
 
     dlg_help = ft.AlertDialog(
         modal=True,
@@ -143,11 +158,10 @@ def transform_stream(router_data: Union[str, None] = None):
         actions=[ft.TextButton("Fermer", on_click=lambda e: e.page.close(dlg_help))],
     )
 
-
-    default_input_device = sd.default.device[0]  # Use the default input device
+    default_input_device = sd.default.device[0]
     print(f"Using default input device: {default_input_device}")
 
-    loading_txt = ft.Text("Transcription en cours...", text_align=ft.TextAlign.CENTER, weight=ft.FontWeight.BOLD),
+    loading_txt = ft.Text("Transcription en cours... (cela peut prendre un moment)", text_align=ft.TextAlign.CENTER, weight=ft.FontWeight.BOLD)
     loading_alert = ft.AlertDialog(
         content=ft.Container(
             padding=ft.padding.all(20),
@@ -163,70 +177,87 @@ def transform_stream(router_data: Union[str, None] = None):
         ),
         bgcolor="#314049",
     )
-    
+
     recording_state = ft.Text("Appuyer sur le bouton start pour commencez.")
     start_button = ft.IconButton(
-            icon=ft.Icons.PLAY_ARROW,
-            icon_color="#FFFFFF",
-            icon_size=40,
-            tooltip="Jouer",
-            on_click=start_recording)
+        icon=ft.Icons.PLAY_ARROW,
+        icon_color="#FFFFFF",
+        icon_size=40,
+        tooltip="Jouer",
+        on_click=start_recording
+    )
 
     stop_button = ft.IconButton(
-            icon=ft.Icons.STOP_ROUNDED,
-            icon_color="#e60f0f",
-            icon_size=40,
-            tooltip="Enreg",
-            on_click=stop_recording,
-            disabled=True)
+        icon=ft.Icons.STOP_ROUNDED,
+        icon_color="#e60f0f",
+        icon_size=40,
+        tooltip="Enreg",
+        on_click=stop_recording,
+        disabled=True
+    )
 
+    nom_fic = ft.TextField(label="Nom du fichier")
+    dlg_modal = ft.AlertDialog(
+        modal=True,
+        title=ft.Text("Confirmation"),
+        content=ft.Text("Quel nom souhaitez vous donnez à cette fiche?"),
+        actions=[
+            ft.Column(
+                [
+                    nom_fic,
+                    ft.Row(
+                        [
+                            ft.TextButton("Sauvegarder", on_click=lambda e: save_fiche(e)),
+                        ],
+                    ),
+                ],
+                spacing=25,
+            ),
+        ],
+    )
 
     content = ft.Column(
-        #juste au dessus on placera les vagues 
-        #elles seront juste des vertical divider dans une colonne ou Row
         [
-        loading_alert,
-        ft.OutlinedButton(
-            text="aide",
-            icon=ft.icons.HELP,
-            on_click=lambda e: e.page.open(dlg_help),
-            adaptive=True,
-            width=100,
-            height=50,
-            icon_color="#FFFFFF ",
-            style=ft.ButtonStyle(color="#FFFFFF", shape=ft.RoundedRectangleBorder(radius=10)),
-        ),
-        
-        recording_state,
-        ft.Container(
-            ft.Row(
-                [
-                    start_button,
-                    stop_button,
-                ],
-                alignment=ft.MainAxisAlignment.CENTER,
+            loading_alert,
+            ft.OutlinedButton(
+                text="aide",
+                icon=ft.icons.HELP,
+                on_click=lambda e: e.page.open(dlg_help),
+                adaptive=True,
+                width=100,
+                height=50,
+                icon_color="#FFFFFF ",
+                style=ft.ButtonStyle(color="#FFFFFF", shape=ft.RoundedRectangleBorder(radius=10)),
             ),
-        ),
-        ft.Container(
-            ft.Row(
-                [
-                    ft.FilledButton(
-                        text="Transcrire",
-                        width=200,
-                        height=40,
-                        on_click=lambda e: handle_transcription_ai_transform(e),
-                        style=ft.ButtonStyle(
-                            bgcolor="#2be50a",
-                            color="#FFFFFF",
-                            overlay_color="#27c00b",
-                            shape=ft.RoundedRectangleBorder(radius=7),
-                        ),
-                    )
-                ],
+            recording_state,
+            ft.Container(
+                ft.Row(
+                    [
+                        start_button,
+                        stop_button,
+                    ],
+                    alignment=ft.MainAxisAlignment.CENTER,
+                ),
             ),
-        ),
-    ]
+            ft.Container(
+                ft.Row(
+                    [
+                        ft.FilledButton(
+                            text="Transcrire",
+                            width=200,
+                            height=40,
+                            on_click=lambda e: handle_transcription_ai_transform(e),
+                            style=ft.ButtonStyle(
+                                bgcolor="#2be50a",
+                                color="#FFFFFF",
+                                overlay_color="#27c00b",
+                                shape=ft.RoundedRectangleBorder(radius=7),
+                            ),
+                        )
+                    ],
+                ),
+            ),
+        ]
     )
 
     return content
-
